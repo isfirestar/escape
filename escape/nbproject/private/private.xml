@@ -6,13 +6,6 @@
     </data>
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group name="work">
-            <file>file:/D:/work/git/libnsp/log.h</file>
-            <file>file:/D:/work/git/swnet-test/escape/session.h</file>
-            <file>file:/D:/work/git/swnet-test/escape/entry.cpp</file>
-            <file>file:/D:/work/git/swnet-test/escape/args.h</file>
-            <file>file:/D:/work/git/swnet-test/escape/args.cpp</file>
-            <file>file:/D:/work/git/swnet-test/escape/session.cpp</file>
-        </group>
+        <group name="work"/>
     </open-files>
 </project-private>

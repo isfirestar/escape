@@ -45,9 +45,6 @@ void session::on_recvdata(const std::string &data)  {
     // 累积接收字节量
     total_rx_ += data.size();
     sub_rx_ += data.size();
-    // 累计接收字节总量应该加上包头长度
-    total_rx_ += sizeof(nsp::proto::nspdef::head_t) + 4;
-    sub_rx_ += sizeof(nsp::proto::nspdef::head_t) + 4;
     // 累积IO完成量
     ++io_counts_;
     ++sub_io_counts_;
@@ -84,10 +81,6 @@ int session::write(uint32_t pktid){
     // 累计发送字节量
     sub_tx_ += size_;
     total_tx_ += size_;
-    
-    // 累计发送字节总量应该加上包头长度
-    total_tx_ += sizeof(nsp::proto::nspdef::head_t) + 4;
-    sub_tx_ += sizeof(nsp::proto::nspdef::head_t) + 4;
     
     tick_psend_ = nsp::os::clock_gettime();
     return this->psend(&packet_);
