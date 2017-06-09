@@ -53,7 +53,14 @@ void session::on_recvdata(const std::string &data)  {
     this->write(type_ == 0 ? pktid : 0);
 }
 
+extern void end_client();
+
 void session::on_disconnected(const HTCPLINK previous)  {
+	if ( 1 == type_ ) {
+		// 客户端链接断开， 直接找主线程， 通知退出
+		end_client();
+	}
+	//printf("session disconnected.\n");
 }
 
 int session::set_pktsize(){    

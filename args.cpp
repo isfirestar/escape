@@ -41,12 +41,12 @@ void dispay_usage() {
             "SYNOPSIS\n"
             "\t[-h|--help]\tdisplay usage context and help informations\n"
             "\t[-v|--version]\tdisplay versions of executable archive\n"
-            "\t[-S|--server]\tthis session run as a client.\n"
-            "\t[-C|--client]\tthis session run as a server.\n"
-            "\t[-H|--host]\tspecify target server IPv4 address or domian when @C or local bind adpater when @S.127.0.0.1 by default\n"
-            "\t[-P|--port]\tspecify target server TCP port when @C or local linsten TCP port when @S.10256 by default\n"
-            "\t[-s|--suze]\tspecify request packet size in bytes when @C or response packet size in bytes when @S.1024 by default\n"
-            "\t[-i|--interval]\tinterval in seconds between display twice.1 sec by default./es  \n"
+            "\t[-S|--server]\tthis session run as a server.\n"
+            "\t[-C|--client]\tthis session run as a client.\n"
+            "\t[-H|--host]\ttarget server IPv4 address or domian when @C or local bind adpater when @S 0.0.0.0 by default\n"
+            "\t[-P|--port]\ttarget server TCP port when @C or local linsten TCP port when @S 10256 by default\n"
+            "\t[-s|--size]\trequest packet size in bytes when @C or response packet size in bytes when @S 1024 by default\n"
+            "\t[-i|--interval]\tinterval in seconds between two displays.1 sec by default. \n"
             ;
 
     printf(usage_context);
@@ -72,7 +72,7 @@ int check_args(int argc, char **argv) {
     
     __startup_parameters.type_ = -1;
     __startup_parameters.size_ = 1024;
-    nsp::toolkit::posix_strcpy(__startup_parameters.host_, cchof(__startup_parameters.host_), "127.0.0.1");
+    nsp::toolkit::posix_strcpy(__startup_parameters.host_, cchof(__startup_parameters.host_), "0.0.0.0");
     __startup_parameters.port_ = 10256;
     __startup_parameters.interval_ = 1000;
 

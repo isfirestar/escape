@@ -7,6 +7,8 @@
 
 #include <errno.h>
 
+nsp::os::waitable_handle server_wait;
+
 int begin_server(){
     
     nsp::tcpip::endpoint ep;
@@ -23,8 +25,11 @@ int begin_server(){
         return -1;
     }
     
+	server_wait.wait( -1 );
     return 0;
 }
+
+nsp::os::waitable_handle client_wait;
 
 int begin_client(){
     nsp::tcpip::endpoint ep;
@@ -47,12 +52,16 @@ int begin_client(){
     
     // 如果一切顺利， 则客户端就用主线程，周期性查询网络消耗
     printf("\tio(total)\tTx(total)\tRx(total)\tiops\tTx(speed)\tRx(speed)\n");
-    nsp::os::waitable_handle w;
-    while (w.wait(getinterval()) > 0){
+    
+    while (client_wait.wait(getinterval()) > 0){
         cli->print();
     }
     
     return 0;
+}
+
+void end_client() {
+	client_wait.sig();
 }
 
 int main(int argc, char **argv) {
@@ -77,8 +86,5 @@ int main(int argc, char **argv) {
             dispay_usage();
             return 1;
     }
-    
-    nsp::os::waitable_handle w;
-    w.wait(-1);
     return 0;
 }

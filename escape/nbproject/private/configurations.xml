@@ -4,7 +4,7 @@
   <confs>
     <conf name="Debug" type="1">
       <toolsSet>
-        <developmentServer>root@192.168.1.103:22</developmentServer>
+        <developmentServer>root@192.168.1.102:22</developmentServer>
         <platform>2</platform>
       </toolsSet>
       <dbx_gdbdebugger version="1">
@@ -13,9 +13,12 @@
         <gdb_interceptlist>
           <gdbinterceptoptions gdb_all="false" gdb_unhandled="true" gdb_unexpected="true"/>
         </gdb_interceptlist>
+        <gdb_signals>
+        </gdb_signals>
         <gdb_options>
           <DebugOptions>
-            <option name="debug_command" value="${OUTPUT_PATH} -CH127.0.0.1 -P10256 -s1024"/>
+            <option name="debug_command"
+                    value="${OUTPUT_PATH} -CHwww.nshost.com.cn -s 2048"/>
           </DebugOptions>
         </gdb_options>
         <gdb_buildfirst gdb_buildfirst_overriden="false" gdb_buildfirst_old="false"/>
@@ -38,7 +41,7 @@
     </conf>
     <conf name="Release" type="1">
       <toolsSet>
-        <developmentServer>root@192.168.1.101:22</developmentServer>
+        <developmentServer>root@192.168.1.102:22</developmentServer>
         <platform>2</platform>
       </toolsSet>
       <dbx_gdbdebugger version="1">
@@ -71,7 +74,7 @@
     </conf>
     <conf name="Release.i686" type="1">
       <toolsSet>
-        <developmentServer>root@192.168.1.103:22</developmentServer>
+        <developmentServer>root@192.168.1.101:22</developmentServer>
         <platform>2</platform>
       </toolsSet>
       <dbx_gdbdebugger version="1">
