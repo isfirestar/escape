@@ -4,7 +4,7 @@ CC=g++
 SRCS=$(wildcard *.cpp) $(wildcard ../libnsp/*.cpp)
 OBJS=$(patsubst %.cpp,%.o,$(SRCS))
 
-CPPFLAGS+=-I ../libnsp/ -Wall -std=c++11
+CPPFLAGS+=-I ../libnsp/ -Wall -std=c++11 -O3
 LDFLAGS=/usr/local/lib64/nshost.so -Wl,-rpath=/usr/local/lib64 -lrt -lpthread -ldl
 
 all:$(TARGET)
