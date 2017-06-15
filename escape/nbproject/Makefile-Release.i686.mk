@@ -21,7 +21,7 @@ FC=gfortran
 AS=as
 
 # Macros
-CND_PLATFORM=None-Linux
+CND_PLATFORM=GNU-Linux
 CND_DLIB_EXT=so
 CND_CONF=Release.i686
 CND_DISTDIR=dist
@@ -70,7 +70,7 @@ LDLIBSOPTIONS=
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/escape: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/escape ${OBJECTFILES} ${LDLIBSOPTIONS} /usr/local/lib/nshost.so -lpthread -ldl -lrt -Wl,-rpath=/usr/local/lib
+	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/escape ${OBJECTFILES} ${LDLIBSOPTIONS} /usr/local/lib/nshost.so.8.1.1 -lpthread -ldl -lrt -Wl,-rpath=.
 
 ${OBJECTDIR}/_ext/bfc7bc46/encrypt.o: ../../libnsp/encrypt.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/bfc7bc46

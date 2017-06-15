@@ -25,7 +25,6 @@ class session : public base_session {
     std::atomic<uint32_t> ato_request_id_ { 0 };
     int type_;
     
-    uint64_t session_begin_tick_;           // session 构造时间点
     uint64_t session_check_tick_ = 0;          // session 检查时间点
     
     // （不受查询循环影响的）总量统计
@@ -37,10 +36,6 @@ class session : public base_session {
     std::atomic<uint64_t> sub_io_counts_{0};
     std::atomic<uint64_t> sub_rx_ {0};
     std::atomic<uint64_t> sub_tx_ {0};
-    std::atomic<uint64_t> sub_avg_delay {0}; // 单位区间内的平均延迟
-    
-    // 发送请求包的时间
-    std::atomic<uint64_t> tick_psend_ {0};
     
     int set_pktsize();
 

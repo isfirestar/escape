@@ -23,13 +23,13 @@ CND_PACKAGE_DIR_Release=dist/Release/GNU-Linux/package
 CND_PACKAGE_NAME_Release=escape.tar
 CND_PACKAGE_PATH_Release=dist/Release/GNU-Linux/package/escape.tar
 # Release.i686 configuration
-CND_PLATFORM_Release.i686=None-Linux
-CND_ARTIFACT_DIR_Release.i686=dist/Release.i686/None-Linux
+CND_PLATFORM_Release.i686=GNU-Linux
+CND_ARTIFACT_DIR_Release.i686=dist/Release.i686/GNU-Linux
 CND_ARTIFACT_NAME_Release.i686=escape
-CND_ARTIFACT_PATH_Release.i686=dist/Release.i686/None-Linux/escape
-CND_PACKAGE_DIR_Release.i686=dist/Release.i686/None-Linux/package
+CND_ARTIFACT_PATH_Release.i686=dist/Release.i686/GNU-Linux/escape
+CND_PACKAGE_DIR_Release.i686=dist/Release.i686/GNU-Linux/package
 CND_PACKAGE_NAME_Release.i686=escape.tar
-CND_PACKAGE_PATH_Release.i686=dist/Release.i686/None-Linux/package/escape.tar
+CND_PACKAGE_PATH_Release.i686=dist/Release.i686/GNU-Linux/package/escape.tar
 #
 # include compiler specific variables
 #

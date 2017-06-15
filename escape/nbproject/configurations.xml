@@ -88,7 +88,7 @@
           </incDir>
         </ccTool>
         <linkerTool>
-          <commandLine>/usr/local/lib64/nshost.so -lpthread -ldl -lrt -Wl,-rpath=/usr/local/lib64</commandLine>
+          <commandLine>/usr/local/lib64/nshost.so.8.1.1 -lpthread -ldl -lrt -Wl,-rpath=.</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../libnsp/application_network_framwork.hpp"
@@ -210,7 +210,7 @@
           <developmentMode>5</developmentMode>
         </asmTool>
         <linkerTool>
-          <commandLine>/usr/local/lib64/nshost.so -lpthread -ldl -lrt -Wl,-rpath=/usr/local/lib64</commandLine>
+          <commandLine>/usr/local/lib64/nshost.so.8.1.1 -lpthread -ldl -lrt -Wl,-rpath=.</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../libnsp/application_network_framwork.hpp"
@@ -323,7 +323,7 @@
           </incDir>
         </ccTool>
         <linkerTool>
-          <commandLine>/usr/local/lib/nshost.so -lpthread -ldl -lrt -Wl,-rpath=/usr/local/lib</commandLine>
+          <commandLine>/usr/local/lib/nshost.so.8.1.1 -lpthread -ldl -lrt -Wl,-rpath=.</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../libnsp/application_network_framwork.hpp"

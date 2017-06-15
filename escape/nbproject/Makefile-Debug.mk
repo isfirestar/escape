@@ -70,7 +70,7 @@ LDLIBSOPTIONS=
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/escape: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/escape ${OBJECTFILES} ${LDLIBSOPTIONS} /usr/local/lib64/nshost.so -lpthread -ldl -lrt -Wl,-rpath=/usr/local/lib64
+	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/escape ${OBJECTFILES} ${LDLIBSOPTIONS} /usr/local/lib64/nshost.so.8.1.1 -lpthread -ldl -lrt -Wl,-rpath=.
 
 ${OBJECTDIR}/_ext/bfc7bc46/encrypt.o: ../../libnsp/encrypt.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/bfc7bc46
