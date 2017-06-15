@@ -15,6 +15,6 @@ $(TARGET):$(OBJS)
 %.o:%.cpp
 	$(CC) $(CPPFLAGS) -c $< -o $@
 clean:
-	$(RM) $(OBJS) $(TARGET)
+	$(RM) $(OBJS) $(TARGET) ../
 
 .PHONY:clean all

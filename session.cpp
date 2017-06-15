@@ -163,7 +163,13 @@ void session::print() {
         posix__sprintf(rx_speed, cchof(rx_speed), "%.1f Mbps", rx_bps / 1024);
         rx_bps /= 1024;
     }
+    
+#if __x86_64__
+    printf("\t%lu\t\t%.2f(%s)\t%.2f(%s)\t%u\t%s\t%s\n", io_counts, total_tx, total_tx_unit, total_rx, total_rx_unit, iops, tx_speed, rx_speed);
+#else
     printf("\t%llu\t\t%.2f(%s)\t%.2f(%s)\t%u\t%s\t%s\n", io_counts, total_tx, total_tx_unit, total_rx, total_rx_unit, iops, tx_speed, rx_speed);
+#endif
+    
 
     // 完成打印及清空当前数据
     sub_io_counts_ = 0;
