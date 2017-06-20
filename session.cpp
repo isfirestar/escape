@@ -119,7 +119,12 @@ int session::on_login_client(const std::string &data) {
                 const char *file = getfile(&len);
                 // 上传操作，不需要携带路径
                 const char *symb = getname(file);
-                std::string tmpstr(symb + 1, strlen(symb) - 1);
+                std::string tmpstr;
+                if (symb) {
+                    tmpstr.assign(symb + 1, strlen(symb) - 1);
+                }else{
+                    tmpstr.assign(file);
+                }
                 filemode_request.path = tmpstr;
                 filemode_request.block_size = getpkgsize();
                 filemode_request.mode = ENABLE_FILEMODE_TEST; // 先尝试进行上传文件请求， 需要服务端处理文件已经存在等异常
@@ -249,7 +254,13 @@ int session::on_enable_filemode_client(const std::string &data) {
                 int len;
                 const char *path = getfile(&len);
                 const char *symb = getname(path);
-                std::string tmpstr(symb + 1, strlen(symb) - 1);
+                std::string tmpstr;
+                if (symb) {
+                    tmpstr.assign(symb + 1, strlen(symb) - 1);
+                }else{
+                    tmpstr.assign(path);
+                }
+                //std::string tmpstr(symb + 1, strlen(symb) - 1);
                 filemode_request.path = tmpstr;
                 filemode_request.block_size = getpkgsize();
                 filemode_request.mode = ENABLE_FILEMODE_FORCE; // 先尝试进行上传文件请求， 需要服务端处理文件已经存在等异常
@@ -428,11 +439,13 @@ void session::print() {
     }
     // 检查时间区间内的Tx速度
     char tx_speed[128];
-    double tx_bps = (double) my_stat.sub_tx_ * 8;
+    uint64_t tx_bps_u =  my_stat.sub_tx_;
+    tx_bps_u *= 8;
+    double tx_bps = (double) tx_bps_u;
     if (escaped_seconds > 0) {
         tx_bps /= escaped_seconds;
     }
-    posix__sprintf(tx_speed, cchof(tx_speed), "%u bps", tx_bps);
+    posix__sprintf(tx_speed, cchof(tx_speed), "%.1f bps", tx_bps);
     if (tx_bps / 1024 > 1) {
         posix__sprintf(tx_speed, cchof(tx_speed), "%.1f Kbps", tx_bps / 1024);
         tx_bps /= 1024;
@@ -443,11 +456,13 @@ void session::print() {
     }
     // 检查时间区间内的Rx速度
     char rx_speed[128];
-    double rx_bps = (double) my_stat.sub_rx_ * 8;
+    uint64_t rx_bps_u = my_stat.sub_rx_;
+    rx_bps_u *= 8;
+    double rx_bps = (double) rx_bps_u;
     if (escaped_seconds > 0) {
         rx_bps /= escaped_seconds;
     }
-    posix__sprintf(rx_speed, cchof(rx_speed), "%u bps", rx_bps);
+    posix__sprintf(rx_speed, cchof(rx_speed), "%.1f bps", rx_bps);
     if (rx_bps / 1024 > 1) {
         posix__sprintf(rx_speed, cchof(rx_speed), "%.1f Kbps", rx_bps / 1024);
         rx_bps /= 1024;
@@ -458,9 +473,9 @@ void session::print() {
     }
 
 #if __x86_64__
-    printf("\t%lu\t\t%.2f(%s)\t%.2f(%s)\t%u\t%s\t%s\n", io_counts, total_tx, total_tx_unit, total_rx, total_rx_unit, iops, tx_speed, rx_speed);
+    printf("\t%lu\t\t%.3f(%s)\t%.3f(%s)\t%u\t%s\t%s\n", io_counts, total_tx, total_tx_unit, total_rx, total_rx_unit, iops, tx_speed, rx_speed);
 #else
-    printf("\t%llu\t\t%.2f(%s)\t%.2f(%s)\t%u\t%s\t%s\n", io_counts, total_tx, total_tx_unit, total_rx, total_rx_unit, iops, tx_speed, rx_speed);
+    printf("\t%llu\t\t%.3f(%s)\t%.3f(%s)\t%u\t%s\t%s\n", io_counts, total_tx, total_tx_unit, total_rx, total_rx_unit, iops, tx_speed, rx_speed);
 #endif
 
 

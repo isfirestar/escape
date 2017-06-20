@@ -45,10 +45,23 @@ int file_mode::open_it() {
 
 int file_mode::creat_it() {
 #if _WIN32
-    fd = CreateFileA(file_path.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (INVALID_HANDLE_VALUE == fd) {
-        return GetLastError();
-    }
+  //  fd = CreateFileA(file_path.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+  //  if (INVALID_HANDLE_VALUE == fd) {
+		//DWORD e = GetLastError();
+		//if ( ERROR_ALREADY_EXISTS == GetLastError() ) {
+		//	return EEXIST;
+		//}
+		//return errno;
+  //  }
+	fd = CreateFileA(file_path.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if ( INVALID_HANDLE_VALUE == fd ) {
+		fd = CreateFileA(file_path.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+		if ( INVALID_HANDLE_VALUE == fd ) {
+			return -1;
+		}
+		return 0;
+	}
+	return EEXIST;
 #else
     fd = open(file_path.c_str(), O_EXCL | O_RDWR | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
     if (fd < 0) {
@@ -61,7 +74,7 @@ int file_mode::creat_it() {
 
 int file_mode::cover_it() {
 #if _WIN32
-    fd = CreateFileA(file_path.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+    fd = CreateFileA(file_path.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
     if (INVALID_HANDLE_VALUE == fd) {
         return GetLastError();
     }
