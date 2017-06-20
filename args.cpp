@@ -4,12 +4,16 @@
 #include "toolkit.h"
 #include "endpoint.h"
 
+#include "args.h"
+
 static struct {
-    int type_; // @0: server @1:client
-    char host_[128]; // IP地址或域名
-    uint16_t port_; // 端口
+    int type; // @0: server @1:client
+    char host[128]; // IP地址或域名
+    uint16_t port; // 端口
     uint32_t size_; // 包大小
-    uint32_t interval_; // 打印间隔
+    uint32_t interval; // 打印间隔
+    char file[255]; // 使用文件
+    int mode;
 } __startup_parameters;
 
 enum ope_index {
@@ -19,8 +23,10 @@ enum ope_index {
     kOptIndex_SetPort = 'P', // @client: 连接目标的端口 @server:本地监听的端口
     kOptIndex_Server = 'S', // 以服务端身份运行
     kOptIndex_Client = 'C', // 以客户端身份运行
-    kOptIndex_Size = 's', // @client: 请求包大小 @server:应答包大小, 均为字节单位
-    kOptIndex_DisplayInterval = 'i' // 打印间隔，秒单位
+    kOptIndex_Size = 's', // @client: 请求包大小 @server:应答包大小, 如果指定了 @u或者@d, 则该参数表示文件传输的单片大小
+    kOptIndex_DisplayInterval = 'i', // 打印间隔，秒单位
+    kOptIndex_UploadFile = 'u', // 执行一次上传文件操作
+    kOptIndex_DownloadFile = 'd', // 执行一次下载文件操作
 };
 
 static const struct option long_options[] = {
@@ -32,6 +38,8 @@ static const struct option long_options[] = {
     {"client", no_argument, NULL, kOptIndex_Client},
     {"size", required_argument, NULL, kOptIndex_Size},
     {"interval", required_argument, NULL, kOptIndex_DisplayInterval},
+    {"upload", required_argument, NULL, kOptIndex_UploadFile },
+    {"download", required_argument, NULL, kOptIndex_DownloadFile},
     {NULL, 0, NULL, 0}
 };
 
@@ -43,10 +51,13 @@ void dispay_usage() {
             "\t[-v|--version]\tdisplay versions of executable archive\n"
             "\t[-S|--server]\tthis session run as a server.\n"
             "\t[-C|--client]\tthis session run as a client.\n"
-            "\t[-H|--host]\ttarget server IPv4 address or domian when @C or local bind adpater when @S 0.0.0.0 by default\n"
-            "\t[-P|--port]\ttarget server TCP port when @C or local linsten TCP port when @S 10256 by default\n"
+            "\t[-H|--host]\ttarget server IPv4 address or domain when @C or local bind adpater when @S 0.0.0.0 by default\n"
+            "\t[-P|--port]\ttarget server TCP port when @C or local listen TCP port when @S 10256 by default\n"
             "\t[-s|--size]\trequest packet size in bytes when @C or response packet size in bytes when @S 1024 by default\n"
+			"\t\t\twith @u or @d specified,@s means pre-block byte count in file mode\n"
             "\t[-i|--interval]\tinterval in seconds between two displays.1 sec by default. \n"
+            "\t[-u|--upload]\tfile mode of upload from @args on local to server application startup directory. only when using @C.\n"
+            "\t[-d|--download]\tfile mode of download from @args on server to current directory.only when using @C.\n"
             ;
 
     printf(usage_context);
@@ -70,21 +81,23 @@ int check_args(int argc, char **argv) {
     int retval = 0;
     char shortopts[128];
     
-    __startup_parameters.type_ = -1;
+    __startup_parameters.type = SESS_TYPE_UNKNOWN;
     __startup_parameters.size_ = 1024;
-    nsp::toolkit::posix_strcpy(__startup_parameters.host_, cchof(__startup_parameters.host_), "0.0.0.0");
-    __startup_parameters.port_ = 10256;
-    __startup_parameters.interval_ = 1000;
+    nsp::toolkit::posix_strcpy(__startup_parameters.host, cchof(__startup_parameters.host), "0.0.0.0");
+    __startup_parameters.port = 10256;
+    __startup_parameters.interval = 1000;
+    __startup_parameters.mode = CS_MODE_ESCAPE_TASK;
+    memset(__startup_parameters.file, 0, sizeof(__startup_parameters.file));
 
-    nsp::toolkit::posix_strcpy(shortopts, cchof(shortopts), "SCvhH:P:s:i:");
+    nsp::toolkit::posix_strcpy(shortopts, cchof(shortopts), "SCvhH:P:s:i:u:d:");
     opt = getopt_long(argc, argv, shortopts, long_options, &opt_index);
     while (opt != -1) {
         switch (opt) {
             case 'S':
-                __startup_parameters.type_ = 0;
+                __startup_parameters.type = SESS_TYPE_SERVER;
                 break;
             case 'C':
-                __startup_parameters.type_ = 1;
+                __startup_parameters.type = SESS_TYPE_CLIENT;
                 break;
             case 'v':
                 display_author_information();
@@ -93,40 +106,49 @@ int check_args(int argc, char **argv) {
                 dispay_usage();
                 return -1;
             case 'H':
-                nsp::toolkit::posix_strcpy(__startup_parameters.host_, cchof(__startup_parameters.host_), optarg);
+                nsp::toolkit::posix_strcpy(__startup_parameters.host, cchof(__startup_parameters.host), optarg);
                 break;
             case 'P':
-                __startup_parameters.port_ = (uint16_t) strtoul(optarg, NULL, 10);
+                __startup_parameters.port = (uint16_t) strtoul(optarg, NULL, 10);
                 break;
             case 's':
                 __startup_parameters.size_ = strtoul(optarg, NULL, 10);
                 break;
             case 'i':
-                __startup_parameters.interval_ = strtoul(optarg, NULL, 10) * 1000;
+                __startup_parameters.interval = strtoul(optarg, NULL, 10) * 1000;
+                break;
+            case 'u':
+                __startup_parameters.mode = CS_MODE_FILE_UPLOAD;
+                nsp::toolkit::posix_strcpy(__startup_parameters.file, sizeof(__startup_parameters.file), optarg);
+                break;
+            case 'd':
+                __startup_parameters.mode = CS_MODE_FILE_DOWNLOAD;
+                nsp::toolkit::posix_strcpy(__startup_parameters.file, sizeof(__startup_parameters.file), optarg);
                 break;
             case '?':
                 printf("?\n");
-                break;
             case 0:
                 printf("0\n");
-                break;
             default:
-                retval = -1;
                 dispay_usage();
                 return -1;
         }
         opt = getopt_long(argc, argv, shortopts, long_options, &opt_index);
     }
 
+    if ((__startup_parameters.mode > CS_MODE_MUST_BE_CLIENT) && __startup_parameters.type != 1){
+        dispay_usage();
+        return -1;
+    }
     return retval;
 }
 
 int buildep(nsp::tcpip::endpoint &ep){
-    return nsp::tcpip::endpoint::build(__startup_parameters.host_, __startup_parameters.port_, ep);
+    return nsp::tcpip::endpoint::build(__startup_parameters.host, __startup_parameters.port, ep);
 }
 
 int gettype(){
-    return __startup_parameters.type_;
+    return __startup_parameters.type;
 }
 
 int getpkgsize(){
@@ -134,5 +156,16 @@ int getpkgsize(){
 }
 
 int getinterval(){
-    return __startup_parameters.interval_;
+    return __startup_parameters.interval;
+}
+
+extern int getmode() {
+    return __startup_parameters.mode;
+}
+
+const char *getfile( int *len ) {
+	if ( len ) {
+		*len = strlen( __startup_parameters.file );
+	}
+	return &__startup_parameters.file[0];
 }

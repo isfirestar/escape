@@ -8,45 +8,50 @@
 #include "old.hpp"
 #include "serialize.hpp"
 
-struct proto_escape_task : public nsp::proto::proto_interface {
-    virtual const int length() const override final;
-    virtual unsigned char *serialize(unsigned char *bytes) const override final ;
-    virtual const unsigned char *build(const unsigned char *bytes, int &cb) override final;
-    
-    nsp::proto::proto_crt_t<uint32_t> request_id_;
-    nsp::proto::proto_string_t<char>  contex_;
-};
+#include "filemode.h"
+#include "sess_stat.h"
+#include "proto.hpp"
+#include "args.h"
+
+#include "os_util.hpp"
 
 typedef nsp::tcpip::tcp_application_client<nsp::proto::nspdef::protocol> base_session;
 
 class session : public base_session {
-    int size_ = 1024;
-    struct proto_escape_task packet_;
-    std::atomic<uint32_t> ato_request_id_ { 0 };
-    int type_;
-    
-    uint64_t session_check_tick_ = 0;          // session 检查时间点
-    
-    // （不受查询循环影响的）总量统计
-    std::atomic<uint64_t> io_counts_ {0} ; // 从开始到当前总共发生的IO次数
-    std::atomic<uint64_t> total_rx_ {0};     // 从开始到当前总共接收的数据字节数
-    std::atomic<uint64_t> total_tx_ {0};     // 从开始到当前总共发送的数据字节数
-    
-    // 单词查询区间的统计
-    std::atomic<uint64_t> sub_io_counts_{0};
-    std::atomic<uint64_t> sub_rx_ {0};
-    std::atomic<uint64_t> sub_tx_ {0};
-    
-    int set_pktsize();
+    struct sess_stat my_stat;
+    file_mode *file_task = nullptr;
+    struct proto_escape_task *escape_task = nullptr;
+    std::atomic<uint32_t> ato_request_id{ 0};
+    int type = SESS_TYPE_UNKNOWN;
+    int mode = CS_MODE_ERROR;
+    uint64_t tick = 0; // session 检查时间点
+    nsp::os::waitable_handle client_init_finish;
+    std::atomic<int> client_inited{ -1};
+
+private:
+    int on_login(const std::string &data);
+    int on_login_client(const std::string &data);
+    int on_escape_task(const std::string &data);
+    int on_escape_task_client(const std::string &data);
+    int on_enable_filemode(const std::string &data);
+    int on_enable_filemode_client(const std::string &data);
+    int on_file_block(const std::string &data);
+    int on_file_block_client(const std::string &data);
+
+private:
+    int send_upload_next();
 
 public:
     session();
     session(HTCPLINK lnk);
     ~session();
+
     virtual void on_recvdata(const std::string &data) override;
     virtual void on_disconnected(const HTCPLINK previous) override;
-    
-    int write(uint32_t pktid = 0);
+
+    int begin_client();
+    int waitfor_init_finish();
+
     void print();
 };
 

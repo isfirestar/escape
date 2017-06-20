@@ -54,6 +54,12 @@
     <ClCompile Include="..\..\libnsp\toolkit.cpp">
       <Filter>Resource Files\nsp</Filter>
     </ClCompile>
+    <ClCompile Include="..\filemode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sess_stat.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\args.h">
@@ -159,6 +165,15 @@
       <Filter>Resource Files\nsp\icom</Filter>
     </ClInclude>
     <ClInclude Include="getopt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\filemode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\proto.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sess_stat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

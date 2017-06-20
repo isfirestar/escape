@@ -98,7 +98,9 @@
     <ClCompile Include="..\..\libnsp\toolkit.cpp" />
     <ClCompile Include="..\args.cpp" />
     <ClCompile Include="..\entry.cpp" />
+    <ClCompile Include="..\filemode.cpp" />
     <ClCompile Include="..\session.cpp" />
+    <ClCompile Include="..\sess_stat.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\libnsp\application_network_framwork.hpp" />
@@ -134,7 +136,10 @@
     <ClInclude Include="..\..\libnsp\task_scheduler.hpp" />
     <ClInclude Include="..\..\libnsp\toolkit.h" />
     <ClInclude Include="..\args.h" />
+    <ClInclude Include="..\filemode.h" />
+    <ClInclude Include="..\proto.hpp" />
     <ClInclude Include="..\session.h" />
+    <ClInclude Include="..\sess_stat.h" />
     <ClInclude Include="getopt.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
