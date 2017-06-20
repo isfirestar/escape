@@ -33,19 +33,21 @@ session::~session() {
     }
 }
 
+// 响应客户端登陆请求
 int session::on_login(const std::string &data) {
     struct proto_login login;
     int cb = data.size();
     if (login.build((const unsigned char *) data.c_str(), cb) < 0) {
         return -1;
     }
+    
+    // 记录本链接的工作模式
     this->mode = login.mode;
 
     proto_login_ack login_ack;
     login_ack.err = 0;
 
-    // 客户端要求建立 escape 的通用 task, 需要获取服务端的配置参数
-    // 并建立 escape task 的工作对象
+    // 常规 escape task 的请求
     if (CS_MODE_ESCAPE_TASK == mode) {
         try {
             // 构建 escape task 结构
@@ -62,14 +64,14 @@ int session::on_login(const std::string &data) {
             login_ack.err = ENOMEM;
         }
     }
-        // CS_MODE_FILE_UPLOAD 或 CS_MODE_FILE_DOWNLOAD 不需要做任何额外处理
-        // 等待 enable_filemode 的请求到达
+    
+    // CS_MODE_FILE_UPLOAD 或 CS_MODE_FILE_DOWNLOAD 不需要做任何额外处理
+    // 等待 enable_filemode 的请求到达
     else {
-        ;
+        nspinfo << "client file mode login."; 
     }
 
-    this->psend(&login_ack);
-    return 0;
+    return this->psend(&login_ack);
 }
 
 int session::on_login_client(const std::string &data) {
@@ -92,11 +94,11 @@ int session::on_login_client(const std::string &data) {
                 } catch (...) {
                     return -1;
                 }
-                this->psend(this->escape_task);
+                return send_escape_next();
             }
             break;
 
-            // 如果请求上传文件， 则应该申请文件在服务端的权限
+            // 如果请求上传文件， 则应该申请文件在本地和服务端的权限
         case CS_MODE_FILE_UPLOAD:
             {
                 // 建立上传请求前， 应该初始化本地文件权限
@@ -148,8 +150,8 @@ int session::on_escape_task(const std::string &data) {
         return -1;
     }
 
-    // 没有登陆
-    if (!this->escape_task) {
+    // 没有登陆 或 工作模式不符合 直接促成断开
+    if (!this->escape_task || this->mode != CS_MODE_ESCAPE_TASK) {
         return -1;
     }
 
@@ -170,11 +172,8 @@ int session::on_escape_task_client(const std::string &data) {
         client_inited = 0;
         client_init_finish.sig();
     }
-
-    // 加入统计
-    my_stat.sub_tx_ += getpkgsize();
-    my_stat.total_tx_ += getpkgsize();
-    return psend(escape_task);
+    
+    return send_escape_next();
 }
 
 // 服务端处理文件请求
@@ -185,11 +184,12 @@ int session::on_enable_filemode(const std::string &data) {
         return -1;
     }
 
+    // 工作模式必须是文件模式
     if (mode < CS_MODE_FILEMODE) {
         return -1;
     }
 
-    // 上传文件请求， 直接以完整目标目录作为测试对象， 测试是否可以创建文件
+    // 上传文件请求, 根据客户端请求类型，建立文件权限， 或者建立覆盖询问
     if (mode == CS_MODE_FILE_UPLOAD) {
         struct proto_enable_filemode_ack filemode_enable_response;
         try {
@@ -203,6 +203,9 @@ int session::on_enable_filemode(const std::string &data) {
             } else {
                 filemode_enable_response.err = file_task->creat_it();
             }
+            
+            // 无论发生什么错误， 即便是 EEXIST， 也关闭本次的描述符
+            // EEXIST 情况，需要客户端确认是否覆盖该文件
             if (0 != filemode_enable_response.err) {
                 delete file_task;
                 file_task = nullptr;
@@ -223,12 +226,15 @@ int session::on_enable_filemode_client(const std::string &data) {
         return -1;
     }
 
+    // 工作模式必须符合要求
     if (mode < CS_MODE_FILEMODE) {
         return -1;
     }
 
     // 上传模式
     if (mode == CS_MODE_FILE_UPLOAD) {
+        
+        // 上传模式走到这一步， 本地文件权限肯定已经打开
         if (!file_task) {
             return -1;
         }
@@ -248,30 +254,31 @@ int session::on_enable_filemode_client(const std::string &data) {
                 filemode_request.block_size = getpkgsize();
                 filemode_request.mode = ENABLE_FILEMODE_FORCE; // 先尝试进行上传文件请求， 需要服务端处理文件已经存在等异常
                 return psend(&filemode_request);
-            } else {
-                client_inited = -1;
-                client_init_finish.sig();
-                return -1;
             }
+            client_inited = -1;
+            client_init_finish.sig();
+            return -1;
         }
             
         // 正常， 上端没有发生任何问题， 文件已经建立, 触发第一个上传数据片
         else if (0 == filemode_enable_ack.err) {
             client_inited = send_upload_next();
             client_init_finish.sig();
-
+            return 0;
         }
             
         // 发生其他异常， 服务器无法处理， 直接促成断连
         else {
             client_inited = -1;
             client_init_finish.sig();
+            return -1;
         }
     }
 
     return 0;
 }
 
+// 服务端处理上传数据
 int session::on_file_block(const std::string &data) {
     struct proto_file_block file_block;
     int cb = data.size();
@@ -279,7 +286,8 @@ int session::on_file_block(const std::string &data) {
         return -1;
     }
 
-    if (!file_task) {
+    // 文件权限和工作模式必须吻合
+    if (!file_task || this->mode < CS_MODE_FILEMODE) {
         return -1;
     }
 
@@ -291,7 +299,7 @@ int session::on_file_block(const std::string &data) {
 
         // 发生失败都以端链作为处理方案
         auto wcb = file_block.data.size();
-        if (wcb != file_task->write_block(file_block.data.data(), file_block.offset, wcb)) {
+        if (wcb != (int)file_task->write_block(file_block.data.data(), file_block.offset, (int)wcb)) {
             return -1;
         }
 
@@ -308,7 +316,7 @@ int session::on_file_block_client(const std::string &data) {
         return -1;
     }
 
-    if (!file_task) {
+    if (!file_task || this->mode < CS_MODE_FILEMODE ) {
         return -1;
     }
 
@@ -364,7 +372,9 @@ void session::on_recvdata(const std::string &data) {
     } else {
         // 累积接收字节量
         my_stat.total_rx_ += data.size();
+        my_stat.total_rx_ += nsp::proto::nspdef::protocol::Length();
         my_stat.sub_rx_ += data.size();
+        my_stat.sub_rx_ += nsp::proto::nspdef::protocol::Length();
         // 累积IO完成量
         ++my_stat.io_counts_;
         ++my_stat.sub_io_counts_;
@@ -466,7 +476,6 @@ int session::begin_client() {
     this->type = gettype();
     struct proto_login login_request;
     login_request.mode = this->mode;
-
     return this->psend(&login_request);
 }
 
@@ -498,4 +507,11 @@ int session::send_upload_next() {
     my_stat.sub_tx_ += file_block_upload.length();
     my_stat.total_tx_ += file_block_upload.length();
     return psend(&file_block_upload);
+}
+
+int session::send_escape_next(){
+    // 加入统计
+    my_stat.sub_tx_ += getpkgsize();
+    my_stat.total_tx_ += getpkgsize();
+    return psend(escape_task);
 }

@@ -84,7 +84,7 @@ int file_mode::read_block(char *block) {
     int rdcb_r;
 
     if (offset + block_size >= file_size) {
-        rdcb_r = file_size - offset;
+        rdcb_r = (int)(file_size - offset);
     } else {
         rdcb_r = block_size;
     }
@@ -101,7 +101,7 @@ int file_mode::read_block(char *block) {
     return rdcb;
 }
 
-int file_mode::write_block(const char *block, int woff, int cb) {
+int file_mode::write_block(const char *block, uint64_t woff, int cb) {
     int wrcb = 0;
 #if _WIN32
     LARGE_INTEGER move, pointer;

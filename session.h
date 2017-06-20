@@ -40,6 +40,7 @@ private:
 
 private:
     int send_upload_next();
+    int send_escape_next();
 
 public:
     session();

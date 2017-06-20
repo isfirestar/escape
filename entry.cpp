@@ -43,13 +43,18 @@ int begin_client() {
     try {
         cli = std::make_shared<session> ();
         cli->create();
-        cli->connect(ep);
+		if ( cli->connect( ep ) < 0 ) {
+			nsperror << "failed to connect to escape server.";
+			return -1;
+		}
+
         cli->begin_client();
+
+		//  等待双向确认操作完成
 		if ( 0 != cli->waitfor_init_finish() ) {
 			return -1;
 		}
     } catch (...) {
-        nsperror << "failed to create TCP service";
         return -1;
     }
 
