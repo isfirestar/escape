@@ -18,13 +18,12 @@
 typedef nsp::tcpip::tcp_application_client<nsp::proto::nspdef::protocol> base_session;
 
 class session : public base_session {
-    struct sess_stat my_stat;
+    sess_stat my_stat;
     file_mode *file_task = nullptr;
     struct proto_escape_task *escape_task = nullptr;
     std::atomic<uint32_t> ato_request_id{ 0};
     int type = SESS_TYPE_UNKNOWN;
     int mode = CS_MODE_ERROR;
-    uint64_t tick = 0; // session 检查时间点
     nsp::os::waitable_handle client_init_finish;
     std::atomic<int> client_inited{ -1};
 

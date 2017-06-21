@@ -100,6 +100,7 @@
     <ClCompile Include="..\entry.cpp" />
     <ClCompile Include="..\filemode.cpp" />
     <ClCompile Include="..\session.cpp" />
+    <ClCompile Include="..\sess_stat.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\libnsp\application_network_framwork.hpp" />

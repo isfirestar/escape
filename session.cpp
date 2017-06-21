@@ -17,11 +17,9 @@ static const char *getname(const char *path) {
 ///////////////////////////////////////////////////// session //////////////////////////////////////////////////////
 
 session::session() : base_session(), client_init_finish(0) {
-    tick = nsp::os::clock_gettime();
 }
 
 session::session(HTCPLINK lnk) : base_session(lnk), client_init_finish(0) {
-    tick = nsp::os::clock_gettime();
 }
 
 session::~session() {
@@ -161,7 +159,8 @@ int session::on_escape_task(const std::string &data) {
     }
 
     escape_task->head.id = escape_request.head.id;
-    return this->psend(escape_task);
+    //return this->psend(escape_task);
+	return send_escape_next();
 }
 
 // 客户端处理 escape task
@@ -260,7 +259,6 @@ int session::on_enable_filemode_client(const std::string &data) {
                 }else{
                     tmpstr.assign(path);
                 }
-                //std::string tmpstr(symb + 1, strlen(symb) - 1);
                 filemode_request.path = tmpstr;
                 filemode_request.block_size = getpkgsize();
                 filemode_request.mode = ENABLE_FILEMODE_FORCE; // 先尝试进行上传文件请求， 需要服务端处理文件已经存在等异常
@@ -381,14 +379,7 @@ void session::on_recvdata(const std::string &data) {
     if (retval < 0) {
         this->close();
     } else {
-        // 累积接收字节量
-        my_stat.total_rx_ += data.size();
-        my_stat.total_rx_ += nsp::proto::nspdef::protocol::Length();
-        my_stat.sub_rx_ += data.size();
-        my_stat.sub_rx_ += nsp::proto::nspdef::protocol::Length();
-        // 累积IO完成量
-        ++my_stat.io_counts_;
-        ++my_stat.sub_io_counts_;
+		my_stat.increase_rx( data.size() );
     }
 }
 
@@ -402,87 +393,7 @@ void session::on_disconnected(const HTCPLINK previous) {
 }
 
 void session::print() {
-    uint64_t current_tick = nsp::os::clock_gettime();
-    uint64_t escaped_tick = current_tick - tick;
-    uint32_t escaped_seconds = (uint32_t) (escaped_tick / 10000000);
-    tick = current_tick;
-    char total_tx_unit[16], total_rx_unit[16];
-
-    // session 至今总共的IO个数
-    uint64_t io_counts = my_stat.io_counts_;
-    // session 至今总共的Tx数据量
-    posix__strcpy(total_tx_unit, cchof(total_tx_unit), "MB");
-    double total_tx = (double) my_stat.total_tx_ / 1024 / 1024;
-    if (total_tx > 1024) {
-        total_tx /= 1024;
-        posix__strcpy(total_tx_unit, cchof(total_tx_unit), "GB");
-        if (total_tx > 1024) {
-            total_tx /= 1024;
-            posix__strcpy(total_tx_unit, cchof(total_tx_unit), "TB");
-        }
-    }
-    // session 至今总共的Rx数据量
-    posix__strcpy(total_rx_unit, cchof(total_rx_unit), "MB");
-    double total_rx = (double) my_stat.total_rx_ / 1024 / 1024;
-    if (total_rx > 1024) {
-        total_rx /= 1024;
-        posix__strcpy(total_rx_unit, cchof(total_rx_unit), "GB");
-        if (total_rx > 1024) {
-            total_rx /= 1024;
-            posix__strcpy(total_rx_unit, cchof(total_rx_unit), "TB");
-        }
-    }
-    // 检查时间区间内的IOPS
-    uint32_t iops = (uint32_t) my_stat.sub_io_counts_;
-    if (escaped_seconds > 0) {
-        iops /= escaped_seconds;
-    }
-    // 检查时间区间内的Tx速度
-    char tx_speed[128];
-    uint64_t tx_bps_u =  my_stat.sub_tx_;
-    tx_bps_u *= 8;
-    double tx_bps = (double) tx_bps_u;
-    if (escaped_seconds > 0) {
-        tx_bps /= escaped_seconds;
-    }
-    posix__sprintf(tx_speed, cchof(tx_speed), "%.1f bps", tx_bps);
-    if (tx_bps / 1024 > 1) {
-        posix__sprintf(tx_speed, cchof(tx_speed), "%.1f Kbps", tx_bps / 1024);
-        tx_bps /= 1024;
-    }
-    if (tx_bps / 1024 > 1) {
-        posix__sprintf(tx_speed, cchof(tx_speed), "%.1f Mbps", tx_bps / 1024);
-        tx_bps /= 1024;
-    }
-    // 检查时间区间内的Rx速度
-    char rx_speed[128];
-    uint64_t rx_bps_u = my_stat.sub_rx_;
-    rx_bps_u *= 8;
-    double rx_bps = (double) rx_bps_u;
-    if (escaped_seconds > 0) {
-        rx_bps /= escaped_seconds;
-    }
-    posix__sprintf(rx_speed, cchof(rx_speed), "%.1f bps", rx_bps);
-    if (rx_bps / 1024 > 1) {
-        posix__sprintf(rx_speed, cchof(rx_speed), "%.1f Kbps", rx_bps / 1024);
-        rx_bps /= 1024;
-    }
-    if (rx_bps / 1024 > 1) {
-        posix__sprintf(rx_speed, cchof(rx_speed), "%.1f Mbps", rx_bps / 1024);
-        rx_bps /= 1024;
-    }
-
-#if __x86_64__
-    printf("\t%lu\t\t%.3f(%s)\t%.3f(%s)\t%u\t%s\t%s\n", io_counts, total_tx, total_tx_unit, total_rx, total_rx_unit, iops, tx_speed, rx_speed);
-#else
-    printf("\t%llu\t\t%.3f(%s)\t%.3f(%s)\t%u\t%s\t%s\n", io_counts, total_tx, total_tx_unit, total_rx, total_rx_unit, iops, tx_speed, rx_speed);
-#endif
-
-
-    // 完成打印及清空当前数据
-    my_stat.sub_io_counts_ = 0;
-    my_stat.sub_rx_ = 0;
-    my_stat.sub_tx_ = 0;
+	my_stat.print();
 }
 
 // 启动客户端， 初始化客户端的基本配置信息， 并登入服务器
@@ -519,14 +430,12 @@ int session::send_upload_next() {
         return -1;
     }
 
-    my_stat.sub_tx_ += file_block_upload.length();
-    my_stat.total_tx_ += file_block_upload.length();
+	my_stat.increase_tx( file_block_upload.length() );
     return psend(&file_block_upload);
 }
 
 int session::send_escape_next(){
     // 加入统计
-    my_stat.sub_tx_ += getpkgsize();
-    my_stat.total_tx_ += getpkgsize();
+	my_stat.increase_tx( escape_task->length() );
     return psend(escape_task);
 }
