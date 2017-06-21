@@ -16,7 +16,7 @@
 #define CS_MODE_FILEMODE		(CS_MODE_FILE_UPLOAD)
 #define CS_MODE_FILE_DOWNLOAD   (3)     // 文件下载模式
 
-extern void dispay_usage();
+extern void display_usage();
 extern int check_args(int argc, char **argv);
 extern int buildep(nsp::tcpip::endpoint &ep);
 
@@ -25,5 +25,6 @@ extern int getpkgsize(); // 获取单帧大小
 extern int getinterval(); // 获取间隔
 extern int getmode();  // 获取运行行为方式
 extern const char *getfile(int *len); // 获取IO文件
+extern int getwinsize(); // 获取窗口大小
 
 #endif

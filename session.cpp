@@ -92,7 +92,12 @@ int session::on_login_client(const std::string &data) {
                 } catch (...) {
                     return -1;
                 }
-                return send_escape_next();
+
+				// 触发 winsize 个escape task
+				for ( int i = 0; i < getwinsize(); i++ ) {
+					send_escape_next();
+				}
+				return 0;
             }
             break;
 
@@ -159,7 +164,6 @@ int session::on_escape_task(const std::string &data) {
     }
 
     escape_task->head.id = escape_request.head.id;
-    //return this->psend(escape_task);
 	return send_escape_next();
 }
 
@@ -176,8 +180,8 @@ int session::on_escape_task_client(const std::string &data) {
         client_inited = 0;
         client_init_finish.sig();
     }
-    
-    return send_escape_next();
+
+	return send_escape_next();
 }
 
 // 服务端处理文件请求

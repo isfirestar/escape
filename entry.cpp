@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
             }
             break;
         default:
-            dispay_usage();
+            display_usage();
             return 1;
     }
     return 0;

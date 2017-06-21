@@ -14,6 +14,7 @@ static struct {
     uint32_t interval; // 打印间隔
     char file[255]; // 使用文件
     int mode;
+	int winsize;		// 交换窗口大小
 } __startup_parameters;
 
 enum ope_index {
@@ -27,6 +28,8 @@ enum ope_index {
     kOptIndex_DisplayInterval = 'i', // 打印间隔，秒单位
     kOptIndex_UploadFile = 'u', // 执行一次上传文件操作
     kOptIndex_DownloadFile = 'd', // 执行一次下载文件操作
+	kOptIndex_WinSize = 'n',	// winsize
+	kOptIndex_WindowSize = 'w',  // winsize
 };
 
 static const struct option long_options[] = {
@@ -40,24 +43,27 @@ static const struct option long_options[] = {
     {"interval", required_argument, NULL, kOptIndex_DisplayInterval},
     {"upload", required_argument, NULL, kOptIndex_UploadFile },
     {"download", required_argument, NULL, kOptIndex_DownloadFile},
+	{"winsize", required_argument, NULL, kOptIndex_WinSize},
+	{"window-size", required_argument, NULL, kOptIndex_WindowSize},
     {NULL, 0, NULL, 0}
 };
 
-void dispay_usage() {
+void display_usage() {
     static const char *usage_context =
             "usage escape - nshost escape timing counter\n"
             "SYNOPSIS\n"
             "\t[-h|--help]\tdisplay usage context and help informations\n"
             "\t[-v|--version]\tdisplay versions of executable archive\n"
             "\t[-S|--server]\tthis session run as a server.\n"
-            "\t[-C|--client]\tthis session run as a client.\n"
-            "\t[-H|--host]\ttarget server IPv4 address or domain when @C or local bind adpater when @S 0.0.0.0 by default\n"
-            "\t[-P|--port]\ttarget server TCP port when @C or local listen TCP port when @S 10256 by default\n"
+            "\t[-C|--client]\tthis session run as a client.this option is default.\n"
+            "\t[-H|--host]\ttarget server IPv4 address or domain when @C or local bind adpater when @S, \"0.0.0.0\" by default\n"
+            "\t[-P|--port]\ttarget server TCP port when @C or local listen TCP port when @S, 10256 by default\n"
             "\t[-s|--size]\trequest packet size in bytes when @C or response packet size in bytes when @S 1024 by default\n"
-			"\t\t\twith @u or @d specified,@s means pre-block byte count in file mode\n"
+			"\t\t\twhen using @u or @d, @s means pre-block bytes in file mode\n"
             "\t[-i|--interval]\tinterval in seconds between two displays.1 sec by default. \n"
-            "\t[-u|--upload]\tfile mode of upload from @args on local to server application startup directory. only when using @C.\n"
-            "\t[-d|--download]\tfile mode of download from @args on server to current directory.only when using @C.\n"
+            "\t[-u|--upload]\tfile mode of upload from @args on local to server application startup directory. only when @C.\n"
+            "\t[-d|--download]\tfile mode of download from @args on server to current directory.only @C.\n"
+			"\t[-n|-w|--winsize|--window-size]\tpacket transfer window size of this connection. 1 by default. only @C and conflict with file mode.\n"
             ;
 
     printf(usage_context);
@@ -81,15 +87,16 @@ int check_args(int argc, char **argv) {
     int retval = 0;
     char shortopts[128];
     
-    __startup_parameters.type = SESS_TYPE_UNKNOWN;
+    __startup_parameters.type = SESS_TYPE_CLIENT;
     __startup_parameters.size_ = 1024;
     nsp::toolkit::posix_strcpy(__startup_parameters.host, cchof(__startup_parameters.host), "0.0.0.0");
     __startup_parameters.port = 10256;
     __startup_parameters.interval = 1000;
     __startup_parameters.mode = CS_MODE_ESCAPE_TASK;
     memset(__startup_parameters.file, 0, sizeof(__startup_parameters.file));
+	__startup_parameters.winsize = 1;
 
-    nsp::toolkit::posix_strcpy(shortopts, cchof(shortopts), "SCvhH:P:s:i:u:d:");
+    nsp::toolkit::posix_strcpy(shortopts, cchof(shortopts), "SCvhH:P:s:i:u:d:n:w:");
     opt = getopt_long(argc, argv, shortopts, long_options, &opt_index);
     while (opt != -1) {
         switch (opt) {
@@ -103,7 +110,7 @@ int check_args(int argc, char **argv) {
                 display_author_information();
                 return -1;
             case 'h':
-                dispay_usage();
+                display_usage();
                 return -1;
             case 'H':
                 nsp::toolkit::posix_strcpy(__startup_parameters.host, cchof(__startup_parameters.host), optarg);
@@ -125,21 +132,33 @@ int check_args(int argc, char **argv) {
                 __startup_parameters.mode = CS_MODE_FILE_DOWNLOAD;
                 nsp::toolkit::posix_strcpy(__startup_parameters.file, sizeof(__startup_parameters.file), optarg);
                 break;
+			case 'w':
+			case 'n':
+				__startup_parameters.winsize = strtoul(optarg, NULL, 10);
+				break;
             case '?':
                 printf("?\n");
             case 0:
                 printf("0\n");
             default:
-                dispay_usage();
+                display_usage();
                 return -1;
         }
         opt = getopt_long(argc, argv, shortopts, long_options, &opt_index);
     }
 
-    if ((__startup_parameters.mode > CS_MODE_MUST_BE_CLIENT) && __startup_parameters.type != 1){
-        dispay_usage();
+    if ((__startup_parameters.mode > CS_MODE_MUST_BE_CLIENT) && __startup_parameters.type != SESS_TYPE_CLIENT){
+        display_usage();
         return -1;
     }
+	if ( __startup_parameters.type == SESS_TYPE_CLIENT && 0 == nsp::toolkit::posix_strcasecmp( __startup_parameters.host, "0.0.0.0" ) ) {
+		display_usage();
+		return -1;
+	}
+	if ( __startup_parameters.winsize > 1 && __startup_parameters.type == SESS_TYPE_SERVER ) {
+		display_usage();
+		return -1;
+	}
     return retval;
 }
 
@@ -168,4 +187,8 @@ const char *getfile( int *len ) {
 		*len = strlen( __startup_parameters.file );
 	}
 	return &__startup_parameters.file[0];
+}
+
+int getwinsize() {
+	return __startup_parameters.winsize;
 }
