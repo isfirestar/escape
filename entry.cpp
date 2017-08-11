@@ -43,9 +43,9 @@ int begin_client() {
     try {
         cli = std::make_shared<session> ();
         cli->create();
-		if ( cli->connect( ep ) < 0 ) {
-			nsperror << "failed to connect to escape server.";
-			return -1;
+		cli->connect2(ep);
+		if (cli->connect_timeout(3000) < 0){
+			throw ETIMEDOUT;
 		}
 
         cli->begin_client();

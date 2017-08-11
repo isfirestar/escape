@@ -16,7 +16,7 @@ static const char *getname(const char *path) {
 
 ///////////////////////////////////////////////////// session //////////////////////////////////////////////////////
 
-session::session() : base_session(), client_init_finish(0) {
+session::session() : base_session(), client_init_finish(0), client_established_notify_(0) {
 }
 
 session::session(HTCPLINK lnk) : base_session(lnk), client_init_finish(0) {
@@ -394,6 +394,21 @@ void session::on_disconnected(const HTCPLINK previous) {
     if (SESS_TYPE_CLIENT == type) {
         end_client();
     }
+}
+
+int session::connect_timeout(uint32_t timeo) {
+	if (0 != client_established_notify_.wait(timeo)){
+		this->close();
+		return -1;
+	}
+
+	client_established_notify_.reset();
+	return 0;
+}
+
+void session::on_connected() {
+	// 作为客户端成功连接上服务器
+	client_established_notify_.sig();
 }
 
 void session::print() {

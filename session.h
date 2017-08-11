@@ -26,6 +26,7 @@ class session : public base_session {
     int mode = CS_MODE_ERROR;
     nsp::os::waitable_handle client_init_finish;
     std::atomic<int> client_inited{ -1};
+	nsp::os::waitable_handle client_established_notify_;
 
 private:
     int on_login(const std::string &data);
@@ -48,7 +49,9 @@ public:
 
     virtual void on_recvdata(const std::string &data) override;
     virtual void on_disconnected(const HTCPLINK previous) override;
+	virtual void on_connected() override;
 
+	int connect_timeout(uint32_t timeo);
     int begin_client();
     int waitfor_init_finish();
 
