@@ -184,6 +184,11 @@ struct proto_escape_task : public nsp::proto::proto_interface {
 	proto_escape_task() {
 		head.type = PKTTYPE_ESCAPE_TASK;
 	}
+
+    virtual ~proto_escape_task() {
+        ;
+    }
+    
     virtual const int length() const override {
         return head.length() + contex.length();
     }
