@@ -45,7 +45,7 @@ private:
 public:
     session();
     session(HTCPLINK lnk);
-    ~session();
+    virtual ~session();
 
     virtual void on_recvdata(const std::string &data) override;
     virtual void on_disconnected(const HTCPLINK previous) override;

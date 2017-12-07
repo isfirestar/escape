@@ -311,8 +311,8 @@ int session::on_file_block(const std::string &data) {
         }
 
         // 发生失败都以端链作为处理方案
-        auto wcb = file_block.data.size();
-        if (wcb != (int)file_task->write_block(file_block.data.data(), file_block.offset, (int)wcb)) {
+        int wcb = (int)file_block.data.size();
+        if (wcb != file_task->write_block(file_block.data.data(), file_block.offset, wcb)) {
             return -1;
         }
 
