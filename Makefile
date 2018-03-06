@@ -8,7 +8,6 @@ SRCS=$(wildcard *.$(SRC_EXT)) $(wildcard ../libnsp/*.$(SRC_EXT))
 OBJS=$(patsubst %.$(SRC_EXT),%.o,$(SRCS))
 
 CFLAGS+=-I ../libnsp/ -Wall -std=c++11
-LDFLAGS=-lrt -lpthread -ldl
 
 ifeq ($(build),debug)
 	CFLAGS+=-g
@@ -21,17 +20,26 @@ ifeq ($(arch),arm)
 	CFLAGS+=-mfloat-abi=hard -mfpu=neon
 	LDFLAGS+=/usr/local/lib/nshost.so -Wl,-rpath=/usr/local/lib/
 else
-	CC=g++
-	LDFLAGS+=/usr/local/lib64/nshost.so -Wl,-rpath=/usr/local/lib64/
+	ifeq ($(arch), i686)
+		CC=g++
+		CFLAGS+=-m32
+		LDFLAGS+=-m32
+		LDFLAGS+=/usr/local/lib/nshost.so -Wl,-rpath=/usr/local/lib/
+	else
+		CC=g++
+		LDFLAGS+=/usr/local/lib64/nshost.so -Wl,-rpath=/usr/local/lib64/
+	endif
 endif
+
+LDFLAGS+=-lrt -lpthread -ldl
 
 all:$(TARGET)
 
 $(TARGET):$(OBJS)
-	$(CC) $(LDFLAGS) -o $@ $^
+	$(CC) -o $@ $^ $(LDFLAGS)
 
 %.o:%.$(SRC_EXT)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) -c $< $(CFLAGS) -o $@
 
 clean:
 	$(RM) $(OBJS) $(TARGET)
