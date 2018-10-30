@@ -8,26 +8,26 @@
 
 static struct {
     int type; // @0: server @1:client
-    char host[128]; // IPµØÖ·»òÓòÃû
-    uint16_t port; // ¶Ë¿Ú
-    uint32_t size_; // °ü´óĞ¡
-    uint32_t interval; // ´òÓ¡¼ä¸ô
-    char file[255]; // Ê¹ÓÃÎÄ¼ş
+    char host[128]; // IPåœ°å€æˆ–åŸŸå
+    uint16_t port; // ç«¯å£
+    uint32_t size_; // åŒ…å¤§å°
+    uint32_t interval; // æ‰“å°é—´éš”
+    char file[255]; // ä½¿ç”¨æ–‡ä»¶
     int mode;
-	int winsize;		// ½»»»´°¿Ú´óĞ¡
+	int winsize;		// äº¤æ¢çª—å£å¤§å°
 } __startup_parameters;
 
 enum ope_index {
     kOptIndex_GetHelp = 'h',
     kOptIndex_GetVersion = 'v',
-    kOptIndex_SetHost = 'H', // @client: Á´½ÓÄ¿±êIPµØÖ·»ñÓòÃû @server:±¾µØ¼àÌıµÄIPµØÖ·/Íø¿¨
-    kOptIndex_SetPort = 'P', // @client: Á¬½ÓÄ¿±êµÄ¶Ë¿Ú @server:±¾µØ¼àÌıµÄ¶Ë¿Ú
-    kOptIndex_Server = 'S', // ÒÔ·şÎñ¶ËÉí·İÔËĞĞ
-    kOptIndex_Client = 'C', // ÒÔ¿Í»§¶ËÉí·İÔËĞĞ
-    kOptIndex_Size = 's', // @client: ÇëÇó°ü´óĞ¡ @server:Ó¦´ğ°ü´óĞ¡, Èç¹ûÖ¸¶¨ÁË @u»òÕß@d, Ôò¸Ã²ÎÊı±íÊ¾ÎÄ¼ş´«ÊäµÄµ¥Æ¬´óĞ¡
-    kOptIndex_DisplayInterval = 'i', // ´òÓ¡¼ä¸ô£¬Ãëµ¥Î»
-    kOptIndex_UploadFile = 'u', // Ö´ĞĞÒ»´ÎÉÏ´«ÎÄ¼ş²Ù×÷
-    kOptIndex_DownloadFile = 'd', // Ö´ĞĞÒ»´ÎÏÂÔØÎÄ¼ş²Ù×÷
+    kOptIndex_SetHost = 'H', // @client: é“¾æ¥ç›®æ ‡IPåœ°å€è·åŸŸå @server:æœ¬åœ°ç›‘å¬çš„IPåœ°å€/ç½‘å¡
+    kOptIndex_SetPort = 'P', // @client: è¿æ¥ç›®æ ‡çš„ç«¯å£ @server:æœ¬åœ°ç›‘å¬çš„ç«¯å£
+    kOptIndex_Server = 'S', // ä»¥æœåŠ¡ç«¯èº«ä»½è¿è¡Œ
+    kOptIndex_Client = 'C', // ä»¥å®¢æˆ·ç«¯èº«ä»½è¿è¡Œ
+    kOptIndex_Size = 's', // @client: è¯·æ±‚åŒ…å¤§å° @server:åº”ç­”åŒ…å¤§å°, å¦‚æœæŒ‡å®šäº† @uæˆ–è€…@d, åˆ™è¯¥å‚æ•°è¡¨ç¤ºæ–‡ä»¶ä¼ è¾“çš„å•ç‰‡å¤§å°
+    kOptIndex_DisplayInterval = 'i', // æ‰“å°é—´éš”ï¼Œç§’å•ä½
+    kOptIndex_UploadFile = 'u', // æ‰§è¡Œä¸€æ¬¡ä¸Šä¼ æ–‡ä»¶æ“ä½œ
+    kOptIndex_DownloadFile = 'd', // æ‰§è¡Œä¸€æ¬¡ä¸‹è½½æ–‡ä»¶æ“ä½œ
 	kOptIndex_WinSize = 'n',	// winsize
 	kOptIndex_WindowSize = 'w',  // winsize
 };
@@ -66,7 +66,7 @@ void display_usage() {
 			"\t[-n|-w|--winsize|--window-size]\tpacket transfer window size of this connection. 1 by default. only @C and conflict with file mode.\n"
             ;
 
-    printf(usage_context);
+    printf("%s", usage_context);
 }
 
 static
@@ -78,7 +78,7 @@ void display_author_information() {
             "<http://www.nshost.com.cn/>.\n"
             "For help, type \"help\".\n"
             ;
-    printf(author_context);
+    printf("%s", author_context);
 }
 
 int check_args(int argc, char **argv) {
