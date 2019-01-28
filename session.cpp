@@ -31,24 +31,24 @@ session::~session() {
     }
 }
 
-// ÏìÓ¦¿Í»§¶ËµÇÂ½ÇëÇó
-int session::on_login(const std::string &data) {
+// å“åº”å®¢æˆ·ç«¯ç™»é™†è¯·æ±‚
+int session::on_login(const std::basic_string<unsigned char> &data) {
     struct proto_login login;
     int cb = data.size();
     if (login.build((const unsigned char *) data.c_str(), cb) < 0) {
         return -1;
     }
     
-    // ¼ÇÂ¼±¾Á´½ÓµÄ¹¤×÷Ä£Ê½
+    // è®°å½•æœ¬é“¾æ¥çš„å·¥ä½œæ¨¡å¼
     this->mode = login.mode;
 
     proto_login_ack login_ack;
     login_ack.err = 0;
 
-    // ³£¹æ escape task µÄÇëÇó
+    // å¸¸è§„ escape task çš„è¯·æ±‚
     if (CS_MODE_ESCAPE_TASK == mode) {
         try {
-            // ¹¹½¨ escape task ½á¹¹
+            // æ„å»º escape task ç»“æ„
             if (!escape_task) {
                 escape_task = new struct proto_escape_task;
                 escape_task->head.type = PKTTYPE_ESCAPE_TASK_ACK;
@@ -63,8 +63,8 @@ int session::on_login(const std::string &data) {
         }
     }
     
-    // CS_MODE_FILE_UPLOAD »ò CS_MODE_FILE_DOWNLOAD ²»ĞèÒª×öÈÎºÎ¶îÍâ´¦Àí
-    // µÈ´ı enable_filemode µÄÇëÇóµ½´ï
+    // CS_MODE_FILE_UPLOAD æˆ– CS_MODE_FILE_DOWNLOAD ä¸éœ€è¦åšä»»ä½•é¢å¤–å¤„ç†
+    // ç­‰å¾… enable_filemode çš„è¯·æ±‚åˆ°è¾¾
     else {
         nspinfo << "client file mode login."; 
     }
@@ -72,7 +72,7 @@ int session::on_login(const std::string &data) {
     return this->psend(&login_ack);
 }
 
-int session::on_login_client(const std::string &data) {
+int session::on_login_client(const std::basic_string<unsigned char> &data) {
     proto_login_ack login_ack;
     int cb = data.size();
     if (login_ack.build((const unsigned char *) data.c_str(), cb) < 0) {
@@ -80,7 +80,7 @@ int session::on_login_client(const std::string &data) {
     }
 
     switch (this->mode) {
-            // escape task ÀàĞÍµÄÁ¬½Ó£¬½¨Á¢¶ÔÏó£¬ ²¢¿ªÊ¼¹¤×÷
+            // escape task ç±»å‹çš„è¿æ¥ï¼Œå»ºç«‹å¯¹è±¡ï¼Œ å¹¶å¼€å§‹å·¥ä½œ
         case CS_MODE_ESCAPE_TASK:
             {
                 try {
@@ -93,7 +93,7 @@ int session::on_login_client(const std::string &data) {
                     return -1;
                 }
 
-				// ´¥·¢ winsize ¸öescape task
+				// è§¦å‘ winsize ä¸ªescape task
 				for ( int i = 0; i < getwinsize(); i++ ) {
 					send_escape_next();
 				}
@@ -101,10 +101,10 @@ int session::on_login_client(const std::string &data) {
             }
             break;
 
-            // Èç¹ûÇëÇóÉÏ´«ÎÄ¼ş£¬ ÔòÓ¦¸ÃÉêÇëÎÄ¼şÔÚ±¾µØºÍ·şÎñ¶ËµÄÈ¨ÏŞ
+            // å¦‚æœè¯·æ±‚ä¸Šä¼ æ–‡ä»¶ï¼Œ åˆ™åº”è¯¥ç”³è¯·æ–‡ä»¶åœ¨æœ¬åœ°å’ŒæœåŠ¡ç«¯çš„æƒé™
         case CS_MODE_FILE_UPLOAD:
             {
-                // ½¨Á¢ÉÏ´«ÇëÇóÇ°£¬ Ó¦¸Ã³õÊ¼»¯±¾µØÎÄ¼şÈ¨ÏŞ
+                // å»ºç«‹ä¸Šä¼ è¯·æ±‚å‰ï¼Œ åº”è¯¥åˆå§‹åŒ–æœ¬åœ°æ–‡ä»¶æƒé™
                 try {
                     file_task = new file_mode(getfile(0), getpkgsize());
                     if (0 != file_task->open_it()) {
@@ -120,7 +120,7 @@ int session::on_login_client(const std::string &data) {
                 struct proto_enable_filemode filemode_request;
                 int len;
                 const char *file = getfile(&len);
-                // ÉÏ´«²Ù×÷£¬²»ĞèÒªĞ¯´øÂ·¾¶
+                // ä¸Šä¼ æ“ä½œï¼Œä¸éœ€è¦æºå¸¦è·¯å¾„
                 const char *symb = getname(file);
                 std::string tmpstr;
                 if (symb) {
@@ -130,13 +130,13 @@ int session::on_login_client(const std::string &data) {
                 }
                 filemode_request.path = tmpstr;
                 filemode_request.block_size = getpkgsize();
-                filemode_request.mode = ENABLE_FILEMODE_TEST; // ÏÈ³¢ÊÔ½øĞĞÉÏ´«ÎÄ¼şÇëÇó£¬ ĞèÒª·şÎñ¶Ë´¦ÀíÎÄ¼şÒÑ¾­´æÔÚµÈÒì³£
+                filemode_request.mode = ENABLE_FILEMODE_TEST; // å…ˆå°è¯•è¿›è¡Œä¸Šä¼ æ–‡ä»¶è¯·æ±‚ï¼Œ éœ€è¦æœåŠ¡ç«¯å¤„ç†æ–‡ä»¶å·²ç»å­˜åœ¨ç­‰å¼‚å¸¸
                 return psend(&filemode_request);
             }
             break;
 
-            // ÏÂÔØÎÄ¼ş£¬²»ĞèÒª¿¼ÂÇ·şÎñ¶ËµÄÎÄ¼şÈ¨ÏŞ£¬ ½öĞèÒª¿¼ÂÇ±¾µØ¶îµÄÎÄ¼şÈ¨ÏŞ
-            // µ«ÊÇÎŞÂÛ±¾µØÈ¨ÏŞÈçºÎ£¬ ¾ùĞèÒª·¢ËÍ enable filemode ÇëÇó
+            // ä¸‹è½½æ–‡ä»¶ï¼Œä¸éœ€è¦è€ƒè™‘æœåŠ¡ç«¯çš„æ–‡ä»¶æƒé™ï¼Œ ä»…éœ€è¦è€ƒè™‘æœ¬åœ°é¢çš„æ–‡ä»¶æƒé™
+            // ä½†æ˜¯æ— è®ºæœ¬åœ°æƒé™å¦‚ä½•ï¼Œ å‡éœ€è¦å‘é€ enable filemode è¯·æ±‚
         case CS_MODE_FILE_DOWNLOAD:
             {
                 struct proto_enable_filemode filemode_request;
@@ -150,15 +150,15 @@ int session::on_login_client(const std::string &data) {
     return 0;
 }
 
-// ·şÎñ¶Ë´¦Àí escape task
-int session::on_escape_task(const std::string &data) {
+// æœåŠ¡ç«¯å¤„ç† escape task
+int session::on_escape_task(const std::basic_string<unsigned char> &data) {
     struct proto_escape_task escape_request;
     int cb = data.size();
     if (escape_request.build((const unsigned char *) data.c_str(), cb) < 0) {
         return -1;
     }
 
-    // Ã»ÓĞµÇÂ½ »ò ¹¤×÷Ä£Ê½²»·ûºÏ Ö±½Ó´Ù³É¶Ï¿ª
+    // æ²¡æœ‰ç™»é™† æˆ– å·¥ä½œæ¨¡å¼ä¸ç¬¦åˆ ç›´æ¥ä¿ƒæˆæ–­å¼€
     if (!this->escape_task || this->mode != CS_MODE_ESCAPE_TASK) {
         return -1;
     }
@@ -167,15 +167,15 @@ int session::on_escape_task(const std::string &data) {
 	return send_escape_next();
 }
 
-// ¿Í»§¶Ë´¦Àí escape task
-int session::on_escape_task_client(const std::string &data) {
+// å®¢æˆ·ç«¯å¤„ç† escape task
+int session::on_escape_task_client(const std::basic_string<unsigned char> &data) {
     struct proto_escape_task escape_response;
     int cb = data.size();
     if (escape_response.build((const unsigned char *) data.c_str(), cb) < 0) {
         return -1;
     }
 
-    // Í¨Öª³õÊ¼»¯Íê³É
+    // é€šçŸ¥åˆå§‹åŒ–å®Œæˆ
     if (client_inited < 0) {
         client_inited = 0;
         client_init_finish.sig();
@@ -184,20 +184,20 @@ int session::on_escape_task_client(const std::string &data) {
 	return send_escape_next();
 }
 
-// ·şÎñ¶Ë´¦ÀíÎÄ¼şÇëÇó
-int session::on_enable_filemode(const std::string &data) {
+// æœåŠ¡ç«¯å¤„ç†æ–‡ä»¶è¯·æ±‚
+int session::on_enable_filemode(const std::basic_string<unsigned char> &data) {
     struct proto_enable_filemode filemode_enable_request;
     int cb = data.size();
     if (filemode_enable_request.build((const unsigned char *) data.c_str(), cb) < 0) {
         return -1;
     }
 
-    // ¹¤×÷Ä£Ê½±ØĞëÊÇÎÄ¼şÄ£Ê½
+    // å·¥ä½œæ¨¡å¼å¿…é¡»æ˜¯æ–‡ä»¶æ¨¡å¼
     if (mode < CS_MODE_FILEMODE) {
         return -1;
     }
 
-    // ÉÏ´«ÎÄ¼şÇëÇó, ¸ù¾İ¿Í»§¶ËÇëÇóÀàĞÍ£¬½¨Á¢ÎÄ¼şÈ¨ÏŞ£¬ »òÕß½¨Á¢¸²¸ÇÑ¯ÎÊ
+    // ä¸Šä¼ æ–‡ä»¶è¯·æ±‚, æ ¹æ®å®¢æˆ·ç«¯è¯·æ±‚ç±»å‹ï¼Œå»ºç«‹æ–‡ä»¶æƒé™ï¼Œ æˆ–è€…å»ºç«‹è¦†ç›–è¯¢é—®
     if (mode == CS_MODE_FILE_UPLOAD) {
         struct proto_enable_filemode_ack filemode_enable_response;
         try {
@@ -212,8 +212,8 @@ int session::on_enable_filemode(const std::string &data) {
                 filemode_enable_response.err = file_task->creat_it();
             }
             
-            // ÎŞÂÛ·¢ÉúÊ²Ã´´íÎó£¬ ¼´±ãÊÇ EEXIST£¬ Ò²¹Ø±Õ±¾´ÎµÄÃèÊö·û
-            // EEXIST Çé¿ö£¬ĞèÒª¿Í»§¶ËÈ·ÈÏÊÇ·ñ¸²¸Ç¸ÃÎÄ¼ş
+            // æ— è®ºå‘ç”Ÿä»€ä¹ˆé”™è¯¯ï¼Œ å³ä¾¿æ˜¯ EEXISTï¼Œ ä¹Ÿå…³é—­æœ¬æ¬¡çš„æè¿°ç¬¦
+            // EEXIST æƒ…å†µï¼Œéœ€è¦å®¢æˆ·ç«¯ç¡®è®¤æ˜¯å¦è¦†ç›–è¯¥æ–‡ä»¶
             if (0 != filemode_enable_response.err) {
                 delete file_task;
                 file_task = nullptr;
@@ -227,27 +227,27 @@ int session::on_enable_filemode(const std::string &data) {
     return -1;
 }
 
-int session::on_enable_filemode_client(const std::string &data) {
+int session::on_enable_filemode_client(const std::basic_string<unsigned char> &data) {
     struct proto_enable_filemode_ack filemode_enable_ack;
     int cb = data.size();
     if (filemode_enable_ack.build((const unsigned char *) data.data(), cb) < 0) {
         return -1;
     }
 
-    // ¹¤×÷Ä£Ê½±ØĞë·ûºÏÒªÇó
+    // å·¥ä½œæ¨¡å¼å¿…é¡»ç¬¦åˆè¦æ±‚
     if (mode < CS_MODE_FILEMODE) {
         return -1;
     }
 
-    // ÉÏ´«Ä£Ê½
+    // ä¸Šä¼ æ¨¡å¼
     if (mode == CS_MODE_FILE_UPLOAD) {
         
-        // ÉÏ´«Ä£Ê½×ßµ½ÕâÒ»²½£¬ ±¾µØÎÄ¼şÈ¨ÏŞ¿Ï¶¨ÒÑ¾­´ò¿ª
+        // ä¸Šä¼ æ¨¡å¼èµ°åˆ°è¿™ä¸€æ­¥ï¼Œ æœ¬åœ°æ–‡ä»¶æƒé™è‚¯å®šå·²ç»æ‰“å¼€
         if (!file_task) {
             return -1;
         }
 
-        // Èç¹û·şÎñ¶ËÃ»ÓĞ¸ÃÂ·¾¶µÄÈ¨ÏŞ£¬ ÔòĞèÒªÑ¯ÎÊÊÇ·ñ¸²¸Ç¸ÃÎÄ¼ş
+        // å¦‚æœæœåŠ¡ç«¯æ²¡æœ‰è¯¥è·¯å¾„çš„æƒé™ï¼Œ åˆ™éœ€è¦è¯¢é—®æ˜¯å¦è¦†ç›–è¯¥æ–‡ä»¶
         if (filemode_enable_ack.err == EEXIST) {
             printf("file is existed,do you want to cover it?(yes/no):");
             char select_command[128];
@@ -265,7 +265,7 @@ int session::on_enable_filemode_client(const std::string &data) {
                 }
                 filemode_request.path = tmpstr;
                 filemode_request.block_size = getpkgsize();
-                filemode_request.mode = ENABLE_FILEMODE_FORCE; // ÏÈ³¢ÊÔ½øĞĞÉÏ´«ÎÄ¼şÇëÇó£¬ ĞèÒª·şÎñ¶Ë´¦ÀíÎÄ¼şÒÑ¾­´æÔÚµÈÒì³£
+                filemode_request.mode = ENABLE_FILEMODE_FORCE; // å…ˆå°è¯•è¿›è¡Œä¸Šä¼ æ–‡ä»¶è¯·æ±‚ï¼Œ éœ€è¦æœåŠ¡ç«¯å¤„ç†æ–‡ä»¶å·²ç»å­˜åœ¨ç­‰å¼‚å¸¸
                 return psend(&filemode_request);
             }
             client_inited = -1;
@@ -273,14 +273,14 @@ int session::on_enable_filemode_client(const std::string &data) {
             return -1;
         }
             
-        // Õı³££¬ ÉÏ¶ËÃ»ÓĞ·¢ÉúÈÎºÎÎÊÌâ£¬ ÎÄ¼şÒÑ¾­½¨Á¢, ´¥·¢µÚÒ»¸öÉÏ´«Êı¾İÆ¬
+        // æ­£å¸¸ï¼Œ ä¸Šç«¯æ²¡æœ‰å‘ç”Ÿä»»ä½•é—®é¢˜ï¼Œ æ–‡ä»¶å·²ç»å»ºç«‹, è§¦å‘ç¬¬ä¸€ä¸ªä¸Šä¼ æ•°æ®ç‰‡
         else if (0 == filemode_enable_ack.err) {
             client_inited = send_upload_next();
             client_init_finish.sig();
             return 0;
         }
             
-        // ·¢ÉúÆäËûÒì³££¬ ·şÎñÆ÷ÎŞ·¨´¦Àí£¬ Ö±½Ó´Ù³É¶ÏÁ¬
+        // å‘ç”Ÿå…¶ä»–å¼‚å¸¸ï¼Œ æœåŠ¡å™¨æ— æ³•å¤„ç†ï¼Œ ç›´æ¥ä¿ƒæˆæ–­è¿
         else {
             client_inited = -1;
             client_init_finish.sig();
@@ -291,26 +291,26 @@ int session::on_enable_filemode_client(const std::string &data) {
     return 0;
 }
 
-// ·şÎñ¶Ë´¦ÀíÉÏ´«Êı¾İ
-int session::on_file_block(const std::string &data) {
+// æœåŠ¡ç«¯å¤„ç†ä¸Šä¼ æ•°æ®
+int session::on_file_block(const std::basic_string<unsigned char> &data) {
     struct proto_file_block file_block;
     int cb = data.size();
     if (file_block.build((const unsigned char *) data.data(), cb) < 0) {
         return -1;
     }
 
-    // ÎÄ¼şÈ¨ÏŞºÍ¹¤×÷Ä£Ê½±ØĞëÎÇºÏ
+    // æ–‡ä»¶æƒé™å’Œå·¥ä½œæ¨¡å¼å¿…é¡»å»åˆ
     if (!file_task || this->mode < CS_MODE_FILEMODE) {
         return -1;
     }
 
     if (mode == CS_MODE_FILE_UPLOAD) {
-        // ´«ÊäÍê³É£¬ ¶Ï¿ªÁ´½ÓºóÖ±½Ó¿ÉÒÔÊÍ·ÅÎÄ¼ş
+        // ä¼ è¾“å®Œæˆï¼Œ æ–­å¼€é“¾æ¥åç›´æ¥å¯ä»¥é‡Šæ”¾æ–‡ä»¶
         if (0 == file_block.data.size() || OFFSET_EOF == file_block.offset) {
             return -1;
         }
 
-        // ·¢ÉúÊ§°Ü¶¼ÒÔ¶ËÁ´×÷Îª´¦Àí·½°¸
+        // å‘ç”Ÿå¤±è´¥éƒ½ä»¥ç«¯é“¾ä½œä¸ºå¤„ç†æ–¹æ¡ˆ
         int wcb = (int)file_block.data.size();
         if (wcb != file_task->write_block(file_block.data.data(), file_block.offset, wcb)) {
             return -1;
@@ -322,7 +322,7 @@ int session::on_file_block(const std::string &data) {
     return 0;
 }
 
-int session::on_file_block_client(const std::string &data) {
+int session::on_file_block_client(const std::basic_string<unsigned char> &data) {
     struct proto_file_block_ack file_block;
     int cb = data.size();
     if (file_block.build((const unsigned char *) data.data(), cb) < 0) {
@@ -333,7 +333,7 @@ int session::on_file_block_client(const std::string &data) {
         return -1;
     }
 
-    // ¼ÌĞø³¢ÊÔ·¢ËÍÏÂÒ»Æ¬ÎÄ¼ş
+    // ç»§ç»­å°è¯•å‘é€ä¸‹ä¸€ç‰‡æ–‡ä»¶
     if (this->mode == CS_MODE_FILE_UPLOAD) {
         return send_upload_next();
     }
@@ -341,7 +341,7 @@ int session::on_file_block_client(const std::string &data) {
     return 0;
 }
 
-void session::on_recvdata(const std::string &data) {
+void session::on_recvdata(const std::basic_string<unsigned char> &data) {
     int retval;
     struct proto_head head;
     int cb = data.size();
@@ -390,7 +390,7 @@ void session::on_recvdata(const std::string &data) {
 extern void end_client();
 
 void session::on_disconnected(const HTCPLINK previous) {
-    // ¿Í»§¶ËÁ´½Ó¶Ï¿ª£¬ Ö±½ÓÕÒÖ÷Ïß³Ì£¬ Í¨ÖªÍË³ö
+    // å®¢æˆ·ç«¯é“¾æ¥æ–­å¼€ï¼Œ ç›´æ¥æ‰¾ä¸»çº¿ç¨‹ï¼Œ é€šçŸ¥é€€å‡º
     if (SESS_TYPE_CLIENT == type) {
         end_client();
     }
@@ -407,7 +407,7 @@ int session::connect_timeout(uint32_t timeo) {
 }
 
 void session::on_connected() {
-	// ×÷Îª¿Í»§¶Ë³É¹¦Á¬½ÓÉÏ·şÎñÆ÷
+	// ä½œä¸ºå®¢æˆ·ç«¯æˆåŠŸè¿æ¥ä¸ŠæœåŠ¡å™¨
 	client_established_notify_.sig();
 }
 
@@ -415,7 +415,7 @@ void session::print() {
 	my_stat.print();
 }
 
-// Æô¶¯¿Í»§¶Ë£¬ ³õÊ¼»¯¿Í»§¶ËµÄ»ù±¾ÅäÖÃĞÅÏ¢£¬ ²¢µÇÈë·şÎñÆ÷
+// å¯åŠ¨å®¢æˆ·ç«¯ï¼Œ åˆå§‹åŒ–å®¢æˆ·ç«¯çš„åŸºæœ¬é…ç½®ä¿¡æ¯ï¼Œ å¹¶ç™»å…¥æœåŠ¡å™¨
 int session::begin_client() {
     this->mode = getmode();
     this->type = gettype();
@@ -432,7 +432,7 @@ int session::waitfor_init_finish() {
     return client_inited;
 }
 
-// ·¢ËÍÏÂÒ»Æ¬ÉÏ´«Êı¾İ
+// å‘é€ä¸‹ä¸€ç‰‡ä¸Šä¼ æ•°æ®
 int session::send_upload_next() {
     struct proto_file_block file_block_upload;
     try {
@@ -454,7 +454,7 @@ int session::send_upload_next() {
 }
 
 int session::send_escape_next(){
-    // ¼ÓÈëÍ³¼Æ
+    // åŠ å…¥ç»Ÿè®¡
 	my_stat.increase_tx( escape_task->length() );
     return psend(escape_task);
 }

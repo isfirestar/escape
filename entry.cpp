@@ -50,7 +50,7 @@ int begin_client() {
 
         cli->begin_client();
 
-		//  µÈ´ýË«ÏòÈ·ÈÏ²Ù×÷Íê³É
+		//  ç­‰å¾…åŒå‘ç¡®è®¤æ“ä½œå®Œæˆ
 		if ( 0 != cli->waitfor_init_finish() ) {
 			return -1;
 		}
@@ -58,7 +58,7 @@ int begin_client() {
         return -1;
     }
 
-    // Èç¹ûÒ»ÇÐË³Àû£¬ Ôò¿Í»§¶Ë¾ÍÓÃÖ÷Ïß³Ì£¬ÖÜÆÚÐÔ²éÑ¯ÍøÂçÏûºÄ
+    // å¦‚æžœä¸€åˆ‡é¡ºåˆ©ï¼Œ åˆ™å®¢æˆ·ç«¯å°±ç”¨ä¸»çº¿ç¨‹ï¼Œå‘¨æœŸæ€§æŸ¥è¯¢ç½‘ç»œæ¶ˆè€—
     printf("\tio(total)\tTx(total)\tRx(total)\tiops\tTx(speed)\tRx(speed)\n");
 
     while (client_wait.wait(getinterval()) > 0) {

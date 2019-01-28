@@ -29,14 +29,14 @@ class session : public base_session {
 	nsp::os::waitable_handle client_established_notify_;
 
 private:
-    int on_login(const std::string &data);
-    int on_login_client(const std::string &data);
-    int on_escape_task(const std::string &data);
-    int on_escape_task_client(const std::string &data);
-    int on_enable_filemode(const std::string &data);
-    int on_enable_filemode_client(const std::string &data);
-    int on_file_block(const std::string &data);
-    int on_file_block_client(const std::string &data);
+    int on_login(const std::basic_string<unsigned char> &data);
+    int on_login_client(const std::basic_string<unsigned char> &data);
+    int on_escape_task(const std::basic_string<unsigned char> &data);
+    int on_escape_task_client(const std::basic_string<unsigned char> &data);
+    int on_enable_filemode(const std::basic_string<unsigned char> &data);
+    int on_enable_filemode_client(const std::basic_string<unsigned char> &data);
+    int on_file_block(const std::basic_string<unsigned char> &data);
+    int on_file_block_client(const std::basic_string<unsigned char> &data);
 
 private:
     int send_upload_next();
@@ -47,7 +47,7 @@ public:
     session(HTCPLINK lnk);
     virtual ~session();
 
-    virtual void on_recvdata(const std::string &data) override;
+    virtual void on_recvdata(const std::basic_string<unsigned char> &data) override;
     virtual void on_disconnected(const HTCPLINK previous) override;
 	virtual void on_connected() override;
 

@@ -15,23 +15,8 @@ else
 	CFLAGS+=-O2
 endif
 
-ifeq ($(arch),arm)
-	CC=arm-linux-gnueabihf-g++
-	CFLAGS+=-mfloat-abi=hard -mfpu=neon
-	LDFLAGS+=/usr/local/lib/nshost.so -Wl,-rpath=/usr/local/lib/
-else
-	ifeq ($(arch), i686)
-		CC=g++
-		CFLAGS+=-m32
-		LDFLAGS+=-m32
-		LDFLAGS+=/usr/local/lib/nshost.so -Wl,-rpath=/usr/local/lib/
-	else
-		CC=g++
-		LDFLAGS+=/usr/local/lib64/nshost.so -Wl,-rpath=/usr/local/lib64/
-	endif
-endif
-
-LDFLAGS+=-lrt -lpthread -ldl
+CC=g++
+LDFLAGS+=./nshost.so -Wl,-rpath=./ -lrt -lpthread -ldl
 
 all:$(TARGET)
 
