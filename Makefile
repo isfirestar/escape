@@ -7,7 +7,7 @@ SRC_EXT=cpp
 SRCS=$(wildcard *.$(SRC_EXT)) $(wildcard ../libnsp/*.$(SRC_EXT))
 OBJS=$(patsubst %.$(SRC_EXT),%.o,$(SRCS))
 
-CFLAGS+=-I ../libnsp/ -Wall -std=c++11
+CFLAGS+=-I ../libnsp/ -Wall -std=c++11 -I ../libnsp/icom/
 
 ifeq ($(build),debug)
 	CFLAGS+=-g
@@ -16,7 +16,7 @@ else
 endif
 
 CC=g++
-LDFLAGS+=./nshost.so -Wl,-rpath=./ -lrt -lpthread -ldl
+LDFLAGS+=-Wl,-rpath=/usr/local/lib64/ /usr/local/lib64/nshost.so -Wl,-rpath=./ -lrt -lpthread -ldl
 
 all:$(TARGET)
 

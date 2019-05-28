@@ -19,7 +19,7 @@ file_mode::file_mode(const std::string& path, uint32_t block_size) {
 
 file_mode::~file_mode() {
     if (fd > 0) {
-        ::posix__close((int) fd);
+        posix__file_close(&fd);
     }
 }
 
@@ -37,7 +37,7 @@ int file_mode::open_it() {
 #endif
     file_size = nsp::os::get_filesize(file_path);
     if (INVAILD_FILESIZE == file_size) {
-        posix__close((int) fd);
+        posix__file_close(&fd);
         return -1;
     }
     return 0;
@@ -79,7 +79,7 @@ int file_mode::cover_it() {
     return 0;
 }
 
-int file_mode::read_block(char *block) {
+int file_mode::read_block(unsigned char *block) {
     // 因为下层执行同步读取， 因此不允许读取偏移超文件大小
     if (offset >= this->file_size) {
         return -1;
@@ -100,13 +100,13 @@ int file_mode::read_block(char *block) {
 #else
     lseek(fd, (__off_t) offset, SEEK_SET);
 #endif
-    rdcb = ::posix__read_file((int) fd, block, rdcb_r);
+    rdcb = posix__file_read(&fd, block, rdcb_r);
     previous_offset = offset;
     offset += rdcb;
     return rdcb;
 }
 
-int file_mode::write_block(const char *block, uint64_t woff, int cb) {
+int file_mode::write_block(const unsigned char *block, uint64_t woff, int cb) {
     int wrcb = 0;
 #if _WIN32
     LARGE_INTEGER move, pointer;
@@ -115,7 +115,7 @@ int file_mode::write_block(const char *block, uint64_t woff, int cb) {
 #else
     lseek(fd, (__off_t) woff, SEEK_SET);
 #endif
-    wrcb = ::posix__write_file((int) fd, block, cb);
+    wrcb = posix__file_write(&fd, block, cb);
     offset += wrcb;
     return wrcb;
 }

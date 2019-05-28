@@ -36,8 +36,8 @@ public:
     int creat_it();
     int cover_it();
 
-    int read_block(char *block);
-    int write_block(const char *block, uint64_t woff, int cb);
+    int read_block(unsigned char *block);
+    int write_block(const unsigned char *block, uint64_t woff, int cb);
 };
 
 #endif // !ESCAPE_FILEMODE_H

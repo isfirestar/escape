@@ -5,6 +5,8 @@
 #include "log.h"
 #include "os_util.hpp"
 
+#include "posix_ifos.h"
+
 #include <errno.h>
 
 nsp::os::waitable_handle server_wait;
@@ -72,7 +74,32 @@ void end_client() {
     client_wait.sig();
 }
 
-int main(int argc, char **argv) {
+void test()
+{
+    int fd;
+    int fretval;
+
+    fd = -1;
+    fretval = posix__file_open("/home/zhuoyunzhi/temp.ini", FF_WRACCESS | FF_CREATE_ALWAYS, 0644, &fd);
+    printf("%d\n", fretval);
+    if (fd > 0) {
+        fretval = posix__file_write(&fd, (const unsigned char *)"abcd#1234", 8);
+        printf("posix__file_write : %d\n", fretval);
+
+        posix__file_seek(&fd, 0);
+
+        char buffer[16] = { 0 };
+        fretval = posix__file_read(&fd, (unsigned char *)buffer, 16);
+        printf("posix__file_read : %d buffer=%s\n", fretval, buffer);
+
+        posix__file_close(&fd);
+    }
+}
+
+int main(int argc, char **argv)
+{
+    test();
+    return 0;
 
     if (check_args(argc, argv) < 0) {
         return 1;

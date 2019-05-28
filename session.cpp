@@ -38,7 +38,7 @@ int session::on_login(const std::basic_string<unsigned char> &data) {
     if (login.build((const unsigned char *) data.c_str(), cb) < 0) {
         return -1;
     }
-    
+
     // 记录本链接的工作模式
     this->mode = login.mode;
 
@@ -62,11 +62,11 @@ int session::on_login(const std::basic_string<unsigned char> &data) {
             login_ack.err = ENOMEM;
         }
     }
-    
+
     // CS_MODE_FILE_UPLOAD 或 CS_MODE_FILE_DOWNLOAD 不需要做任何额外处理
     // 等待 enable_filemode 的请求到达
     else {
-        nspinfo << "client file mode login."; 
+        nspinfo << "client file mode login.";
     }
 
     return this->psend(&login_ack);
@@ -211,7 +211,7 @@ int session::on_enable_filemode(const std::basic_string<unsigned char> &data) {
             } else {
                 filemode_enable_response.err = file_task->creat_it();
             }
-            
+
             // 无论发生什么错误， 即便是 EEXIST， 也关闭本次的描述符
             // EEXIST 情况，需要客户端确认是否覆盖该文件
             if (0 != filemode_enable_response.err) {
@@ -241,7 +241,7 @@ int session::on_enable_filemode_client(const std::basic_string<unsigned char> &d
 
     // 上传模式
     if (mode == CS_MODE_FILE_UPLOAD) {
-        
+
         // 上传模式走到这一步， 本地文件权限肯定已经打开
         if (!file_task) {
             return -1;
@@ -272,14 +272,14 @@ int session::on_enable_filemode_client(const std::basic_string<unsigned char> &d
             client_init_finish.sig();
             return -1;
         }
-            
+
         // 正常， 上端没有发生任何问题， 文件已经建立, 触发第一个上传数据片
         else if (0 == filemode_enable_ack.err) {
             client_inited = send_upload_next();
             client_init_finish.sig();
             return 0;
         }
-            
+
         // 发生其他异常， 服务器无法处理， 直接促成断连
         else {
             client_inited = -1;
@@ -312,7 +312,7 @@ int session::on_file_block(const std::basic_string<unsigned char> &data) {
 
         // 发生失败都以端链作为处理方案
         int wcb = (int)file_block.data.size();
-        if (wcb != file_task->write_block(file_block.data.data(), file_block.offset, wcb)) {
+        if (wcb != file_task->write_block((const unsigned char *)file_block.data.data(), file_block.offset, wcb)) {
             return -1;
         }
 
@@ -436,7 +436,7 @@ int session::waitfor_init_finish() {
 int session::send_upload_next() {
     struct proto_file_block file_block_upload;
     try {
-        char *block = new char[file_task->get_blocksize()];
+        unsigned char *block = new unsigned char[file_task->get_blocksize()];
         int rdcb = file_task->read_block(block);
         if (rdcb <= 0) {
             file_block_upload.offset = OFFSET_EOF;

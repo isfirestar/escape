@@ -144,14 +144,14 @@ struct proto_file_block : public nsp::proto::proto_interface  {
 
     struct proto_head head;
     nsp::proto::proto_crt_t<uint64_t> offset; // @u 填写本次传送数据偏移， 直到 OFFSET_EOF, @d 忽略
-    nsp::proto::proto_string_t<char> data; // @u 本次传输数据块， @d 忽略
+    nsp::proto::proto_string_t<unsigned char> data; // @u 本次传输数据块， @d 忽略
 };
 
 struct proto_file_block_ack : public nsp::proto::proto_interface {
 	proto_file_block_ack() {
 		head.type = PKTTYPE_FILE_BLOCK_ACK;
 	}
-	
+
     virtual const int length() const override {
         return head.length() + offset.length() + data.length();
     }
@@ -188,7 +188,7 @@ struct proto_escape_task : public nsp::proto::proto_interface {
     virtual ~proto_escape_task() {
         ;
     }
-    
+
     virtual const int length() const override {
         return head.length() + contex.length();
     }
@@ -206,7 +206,7 @@ struct proto_escape_task : public nsp::proto::proto_interface {
         pos = contex.build(pos, cb);
         return pos;
     }
-    
+
     struct proto_head head;
     nsp::proto::proto_string_t<char>  contex;
 };
