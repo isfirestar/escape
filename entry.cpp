@@ -81,7 +81,7 @@ void test()
     file_descriptor_t fd;
     int fretval;
 
-    fd = -1;
+    fd = INVALID_FILE_DESCRIPTOR;
 #if _WIN32
 	fretval = posix__file_open("d:\\temp.ini", FF_WRACCESS | FF_OPEN_ALWAYS, 0644, &fd);
 #else
