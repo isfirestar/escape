@@ -82,11 +82,7 @@ void test()
     int fretval;
 
     fd = INVALID_FILE_DESCRIPTOR;
-#if _WIN32
-	fretval = posix__file_open("d:\\temp.ini", FF_WRACCESS | FF_OPEN_ALWAYS, 0644, &fd);
-#else
-    fretval = posix__file_open("/home/zhuoyunzhi/temp.ini", FF_WRACCESS | FF_CREATE_ALWAYS, 0644, &fd);
-#endif
+    fretval = posix__file_open("temp.ini", FF_WRACCESS | FF_CREATE_ALWAYS, 0644, &fd);
     printf("%d\n", fretval);
     if (fd > 0) {
         fretval = posix__file_write(fd, (const unsigned char *)"abcd#1234", 8);
@@ -98,7 +94,13 @@ void test()
         fretval = posix__file_read(fd, (unsigned char *)buffer, 16);
         printf("posix__file_read : %d buffer=%s\n", fretval, buffer);
 
+		fretval = posix__file_fgetsize(fd);
+		printf("posix__file_fgetsize : %d\n", fretval);
+
         posix__file_close(fd);
+
+		fretval = posix__file_getsize("temp.ini");
+		printf("posix__file_fgetsize : %d\n", fretval);
     }
 }
 

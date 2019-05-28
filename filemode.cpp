@@ -32,7 +32,7 @@ int file_mode::open_it() {
         return retval;
     }
 
-    file_size = posix__file_getsize(fd);
+    file_size = posix__file_fgetsize(fd);
     if (file_size < 0) {
         posix__file_close(fd);
         return -1;
