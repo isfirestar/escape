@@ -53,12 +53,13 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\;$(SolutionDir)..\..\libnsp;$(ProjectDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\;$(SolutionDir)..\..\libnsp\icom\;$(SolutionDir)..\..\libnsp;$(ProjectDir)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(SolutionDir)..\..\libnsp\lib\libnsp.a;$(ProjectDir)getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>nshost.lib;$(ProjectDir)getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\..\swnet-win32\lib\$(Platform)\$(Configuration)\nshost\</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(OutDir)\$(ProjectName).exe" "$(SolutionDir)bin"</Command>
@@ -93,7 +94,6 @@
     <ClCompile Include="..\..\libnsp\log.cpp" />
     <ClCompile Include="..\..\libnsp\network_handler.cpp" />
     <ClCompile Include="..\..\libnsp\os_util.cpp" />
-    <ClCompile Include="..\..\libnsp\shmem.cpp" />
     <ClCompile Include="..\..\libnsp\swnet.cpp" />
     <ClCompile Include="..\..\libnsp\toolkit.cpp" />
     <ClCompile Include="..\args.cpp" />
@@ -130,7 +130,6 @@
     <ClInclude Include="..\..\libnsp\old.hpp" />
     <ClInclude Include="..\..\libnsp\os_util.hpp" />
     <ClInclude Include="..\..\libnsp\serialize.hpp" />
-    <ClInclude Include="..\..\libnsp\shmem.h" />
     <ClInclude Include="..\..\libnsp\singleton.hpp" />
     <ClInclude Include="..\..\libnsp\swnet.h" />
     <ClInclude Include="..\..\libnsp\task_scheduler.hpp" />
