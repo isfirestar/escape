@@ -8,16 +8,10 @@
 #include <atomic>
 #include <cstdint>
 
-#if _WIN32
-#include <Windows.h>
-#endif
+#include "posix_ifos.h"
 
 class file_mode {
-#if _WIN32
-    HANDLE fd = (HANDLE) (~0);
-#else
-    int fd = -1;
-#endif
+    file_descriptor_t fd = INVALID_FILE_DESCRIPTOR;
     uint64_t previous_offset = 0;
     std::atomic<uint64_t> offset{ 0};
     uint64_t file_size = 0;

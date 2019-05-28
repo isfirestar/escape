@@ -19,64 +19,39 @@ file_mode::file_mode(const std::string& path, uint32_t block_size) {
 
 file_mode::~file_mode() {
     if (fd > 0) {
-        posix__file_close(&fd);
+        posix__file_close(fd);
     }
 }
 
 int file_mode::open_it() {
-#if _WIN32
-    fd = CreateFileA(file_path.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (INVALID_HANDLE_VALUE == fd) {
-        return GetLastError();
+    int retval;
+    file_descriptor_t fd;
+
+    retval = posix__file_open(file_path.c_str(), FF_RDACCESS | FF_OPEN_EXISTING, 0644, &fd);
+    if (retval < 0) {
+        return retval;
     }
-#else
-    fd = open(file_path.c_str(), O_RDONLY);
-    if (fd < 0) {
-        return errno;
-    }
-#endif
-    file_size = nsp::os::get_filesize(file_path);
-    if (INVAILD_FILESIZE == file_size) {
-        posix__file_close(&fd);
+
+    file_size = posix__file_getsize(fd);
+    if (file_size < 0) {
+        posix__file_close(fd);
         return -1;
     }
     return 0;
 }
 
 int file_mode::creat_it() {
-#if _WIN32
-	fd = CreateFileA(file_path.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	if ( INVALID_HANDLE_VALUE == fd ) {
-		fd = CreateFileA(file_path.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-		if ( INVALID_HANDLE_VALUE == fd ) {
-			return -1;
-		}
-		return 0;
-	}
-	return EEXIST;
-#else
-    fd = open(file_path.c_str(), O_EXCL | O_RDWR | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
-    if (fd < 0) {
-        return errno;
-    }
-#endif
-    return 0;
+    int retval;
 
+    retval = posix__file_open(file_path.c_str(), FF_WRACCESS | FF_OPEN_EXISTING, 0644, &fd);
+    if ( retval < 0) {
+        retval = posix__file_open(file_path.c_str(), FF_WRACCESS | FF_CREATE_ALWAYS, 0644, &fd);
+    }
+    return retval;
 }
 
 int file_mode::cover_it() {
-#if _WIN32
-    fd = CreateFileA(file_path.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (INVALID_HANDLE_VALUE == fd) {
-        return GetLastError();
-    }
-#else
-    fd = open(file_path.c_str(), O_RDWR | O_CREAT | O_TRUNC, S_IRWXU | S_IRGRP | S_IROTH);
-    if (fd < 0) {
-        return errno;
-    }
-#endif
-    return 0;
+    return posix__file_open(file_path.c_str(), FF_WRACCESS | FF_CREATE_ALWAYS, 0644, &fd);
 }
 
 int file_mode::read_block(unsigned char *block) {
@@ -93,14 +68,10 @@ int file_mode::read_block(unsigned char *block) {
     } else {
         rdcb_r = block_size;
     }
-#if _WIN32
-    LARGE_INTEGER move, pointer;
-    move.QuadPart = offset;
-    SetFilePointerEx((HANDLE) fd, move, &pointer, FILE_BEGIN);
-#else
-    lseek(fd, (__off_t) offset, SEEK_SET);
-#endif
-    rdcb = posix__file_read(&fd, block, rdcb_r);
+
+    posix__file_seek(fd, offset);
+
+    rdcb = posix__file_read(fd, block, rdcb_r);
     previous_offset = offset;
     offset += rdcb;
     return rdcb;
@@ -108,14 +79,10 @@ int file_mode::read_block(unsigned char *block) {
 
 int file_mode::write_block(const unsigned char *block, uint64_t woff, int cb) {
     int wrcb = 0;
-#if _WIN32
-    LARGE_INTEGER move, pointer;
-    move.QuadPart = woff;
-    SetFilePointerEx((HANDLE) fd, move, &pointer, FILE_BEGIN);
-#else
-    lseek(fd, (__off_t) woff, SEEK_SET);
-#endif
-    wrcb = posix__file_write(&fd, block, cb);
+
+    posix__file_seek(fd, woff);
+
+    wrcb = posix__file_write(fd, block, cb);
     offset += wrcb;
     return wrcb;
 }
