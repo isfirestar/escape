@@ -1,4 +1,4 @@
-#include <string.h>
+﻿#include <string.h>
 #include <memory>
 #include "session.h"
 #include "args.h"
@@ -11,8 +11,8 @@
 
 nsp::os::waitable_handle server_wait;
 
-int begin_server() {
-
+int begin_server() 
+{
     nsp::tcpip::endpoint ep;
     if (buildep(ep) < 0) {
         nsperror << "unknown EP specified,";
@@ -33,7 +33,8 @@ int begin_server() {
 
 nsp::os::waitable_handle client_wait;
 
-int begin_client() {
+int begin_client() 
+{
     nsp::tcpip::endpoint ep;
     if (buildep(ep) < 0) {
         nsperror << "unknown EP specified,";
@@ -70,7 +71,8 @@ int begin_client() {
     return 0;
 }
 
-void end_client() {
+void end_client() 
+{
     client_wait.sig();
 }
 
@@ -80,7 +82,11 @@ void test()
     int fretval;
 
     fd = -1;
+#if _WIN32
+	fretval = posix__file_open("d:\\temp.ini", FF_WRACCESS | FF_OPEN_ALWAYS, 0644, &fd);
+#else
     fretval = posix__file_open("/home/zhuoyunzhi/temp.ini", FF_WRACCESS | FF_CREATE_ALWAYS, 0644, &fd);
+#endif
     printf("%d\n", fretval);
     if (fd > 0) {
         fretval = posix__file_write(fd, (const unsigned char *)"abcd#1234", 8);

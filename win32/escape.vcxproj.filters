@@ -45,9 +45,6 @@
     <ClCompile Include="..\..\libnsp\os_util.cpp">
       <Filter>Resource Files\nsp</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libnsp\shmem.cpp">
-      <Filter>Resource Files\nsp</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\libnsp\swnet.cpp">
       <Filter>Resource Files\nsp</Filter>
     </ClCompile>
@@ -90,9 +87,6 @@
       <Filter>Resource Files\nsp</Filter>
     </ClInclude>
     <ClInclude Include="..\..\libnsp\serialize.hpp">
-      <Filter>Resource Files\nsp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\libnsp\shmem.h">
       <Filter>Resource Files\nsp</Filter>
     </ClInclude>
     <ClInclude Include="..\..\libnsp\singleton.hpp">
