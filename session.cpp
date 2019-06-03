@@ -397,7 +397,7 @@ void session::on_disconnected(const HTCPLINK previous) {
 }
 
 int session::connect_timeout(uint32_t timeo) {
-	if (0 != client_established_notify_.wait(timeo)){
+	if (0 != client_established_notify_.wait(-1)){
 		this->close();
 		return -1;
 	}

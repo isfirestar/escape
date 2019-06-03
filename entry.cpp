@@ -11,7 +11,7 @@
 
 nsp::os::waitable_handle server_wait;
 
-int begin_server() 
+int begin_server()
 {
     nsp::tcpip::endpoint ep;
     if (buildep(ep) < 0) {
@@ -33,7 +33,7 @@ int begin_server()
 
 nsp::os::waitable_handle client_wait;
 
-int begin_client() 
+int begin_client()
 {
     nsp::tcpip::endpoint ep;
     if (buildep(ep) < 0) {
@@ -71,7 +71,7 @@ int begin_client()
     return 0;
 }
 
-void end_client() 
+void end_client()
 {
     client_wait.sig();
 }
@@ -106,9 +106,6 @@ void test()
 
 int main(int argc, char **argv)
 {
-    test();
-    return 0;
-
     if (check_args(argc, argv) < 0) {
         return 1;
     }
