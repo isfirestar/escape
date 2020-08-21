@@ -94,12 +94,12 @@ void test()
         fretval = posix__file_read(fd, (unsigned char *)buffer, 16);
         printf("posix__file_read : %d buffer=%s\n", fretval, buffer);
 
-		fretval = posix__file_fgetsize(fd);
+		fretval = static_cast<int>(posix__file_fgetsize(fd));
 		printf("posix__file_fgetsize : %d\n", fretval);
 
         posix__file_close(fd);
 
-		fretval = posix__file_getsize("temp.ini");
+		fretval = static_cast<int>(posix__file_getsize("temp.ini"));
 		printf("posix__file_fgetsize : %d\n", fretval);
     }
 }
