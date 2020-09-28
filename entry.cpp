@@ -62,7 +62,8 @@ int begin_client()
     }
 
     // 如果一切顺利， 则客户端就用主线程，周期性查询网络消耗
-    printf("\tio(total)\tTx(total)\tRx(total)\tiops\tTx(speed)\tRx(speed)\n");
+    //printf("\tio(total)\tTx(total)\tRx(total)\tiops\tTx(speed)\tRx(speed)\n");
+    printf("\tio\trtt\tiops\tTx(Pre Delta)\tRx(Pre Delta)\n");
 
     while (client_wait.wait(getinterval()) > 0) {
         cli->print();

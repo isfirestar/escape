@@ -27,6 +27,23 @@ void sess_stat::increase_rx( uint64_t inc ) {
 	++sub_io_counts_;
 }
 
+void sess_stat::update_rtt(uint64_t tx_timestamp)
+{
+    uint64_t rtt;
+    double rtt_milliseconds;
+
+    if (0 == tx_timestamp){
+        return;
+    }
+
+    rtt = nsp::os::clock_monotonic() - tx_timestamp;
+    rtt_milliseconds = (double)rtt / 10000;
+
+    if ( 0 == max_rtt_ || max_rtt_ < rtt_milliseconds) {
+        max_rtt_ = rtt_milliseconds;
+    }
+}
+
 void sess_stat::print() {
     uint64_t current_tick = nsp::os::clock_gettime();
 	if ( current_tick <= tick ) {
@@ -35,36 +52,38 @@ void sess_stat::print() {
     uint64_t escaped_tick = current_tick - tick;
     uint32_t escaped_seconds = (uint32_t) (escaped_tick / 10000000);
     tick = current_tick;
-    char total_tx_unit[16], total_rx_unit[16];
 
-    // session 至今总共的IO个数
     uint64_t io_counts = io_counts_;
+ //    char total_tx_unit[16], total_rx_unit[16];
 
-    // session 至今总共的Tx数据量
-    nsp::toolkit::posix_strcpy(total_tx_unit, cchof(total_tx_unit), "MB");
-	uint64_t total_tx_u = total_tx_;
-    double total_tx = (double) total_tx_u / 1024 / 1024;
-    if (total_tx > 1024) {
-        total_tx /= 1024;
-        nsp::toolkit::posix_strcpy(total_tx_unit, cchof(total_tx_unit), "GB");
-        if (total_tx > 1024) {
-            total_tx /= 1024;
-            nsp::toolkit::posix_strcpy(total_tx_unit, cchof(total_tx_unit), "TB");
-        }
-    }
+ //    // session 至今总共的IO个数
+ //    uint64_t io_counts = io_counts_;
 
-    // session 至今总共的Rx数据量
-    nsp::toolkit::posix_strcpy(total_rx_unit, cchof(total_rx_unit), "MB");
-	uint64_t total_rx_u = total_rx_;
-    double total_rx = (double) total_rx_u / 1024 / 1024;
-    if (total_rx > 1024) {
-        total_rx /= 1024;
-        nsp::toolkit::posix_strcpy(total_rx_unit, cchof(total_rx_unit), "GB");
-        if (total_rx > 1024) {
-            total_rx /= 1024;
-            nsp::toolkit::posix_strcpy(total_rx_unit, cchof(total_rx_unit), "TB");
-        }
-    }
+ //    // session 至今总共的Tx数据量
+ //    nsp::toolkit::posix_strcpy(total_tx_unit, cchof(total_tx_unit), "MB");
+	// uint64_t total_tx_u = total_tx_;
+ //    double total_tx = (double) total_tx_u / 1024 / 1024;
+ //    if (total_tx > 1024) {
+ //        total_tx /= 1024;
+ //        nsp::toolkit::posix_strcpy(total_tx_unit, cchof(total_tx_unit), "GB");
+ //        if (total_tx > 1024) {
+ //            total_tx /= 1024;
+ //            nsp::toolkit::posix_strcpy(total_tx_unit, cchof(total_tx_unit), "TB");
+ //        }
+ //    }
+
+ //    // session 至今总共的Rx数据量
+ //    nsp::toolkit::posix_strcpy(total_rx_unit, cchof(total_rx_unit), "MB");
+	// uint64_t total_rx_u = total_rx_;
+ //    double total_rx = (double) total_rx_u / 1024 / 1024;
+ //    if (total_rx > 1024) {
+ //        total_rx /= 1024;
+ //        nsp::toolkit::posix_strcpy(total_rx_unit, cchof(total_rx_unit), "GB");
+ //        if (total_rx > 1024) {
+ //            total_rx /= 1024;
+ //            nsp::toolkit::posix_strcpy(total_rx_unit, cchof(total_rx_unit), "TB");
+ //        }
+ //    }
 
     // 检查时间区间内的IOPS
     uint32_t iops = (uint32_t) sub_io_counts_;
@@ -108,13 +127,23 @@ void sess_stat::print() {
         posix__sprintf(rx_speed, cchof(rx_speed), "%.1f Mbps", rx_bps);
     }
 
+// #if __x86_64__
+//     printf("\t%lu\t\t%.3f(%s)\t%.3f(%s)\t%u\t%s\t%s\n", io_counts, total_tx, total_tx_unit, total_rx, total_rx_unit, iops, tx_speed, rx_speed);
+// #else
+// #if _WIN32
+// 	printf("\t%I64u\t\t%.3f(%s)\t%.3f(%s)\t%u\t%s\t%s\n", io_counts, total_tx, total_tx_unit, total_rx, total_rx_unit,  iops, tx_speed, rx_speed);
+// #else
+//     printf("\t%llu\t\t%.3f(%s)\t%.3f(%s)\t%u\t%s\t%s\n", io_counts, total_tx, total_tx_unit, total_rx, total_rx_unit, iops, tx_speed, rx_speed);
+// #endif
+// #endif
+    float rtt = max_rtt_;
 #if __x86_64__
-    printf("\t%lu\t\t%.3f(%s)\t%.3f(%s)\t%u\t%s\t%s\n", io_counts, total_tx, total_tx_unit, total_rx, total_rx_unit, iops, tx_speed, rx_speed);
+    printf("\t%lu\t%.3f\t%u\t%s\t%s\n", io_counts, rtt, iops, tx_speed, rx_speed);
 #else
 #if _WIN32
-	printf("\t%I64u\t\t%.3f(%s)\t%.3f(%s)\t%u\t%s\t%s\n", io_counts, total_tx, total_tx_unit, total_rx, total_rx_unit,  iops, tx_speed, rx_speed);
+    printf("\t%I64u\t%.3f\t%u\t%s\t%s\n", io_counts, rtt, iops, tx_speed, rx_speed);
 #else
-    printf("\t%llu\t\t%.3f(%s)\t%.3f(%s)\t%u\t%s\t%s\n", io_counts, total_tx, total_tx_unit, total_rx, total_rx_unit, iops, tx_speed, rx_speed);
+    printf("\t%llu\t%.3f\t%u\t%s\t%s\n", io_counts, rtt, iops, tx_speed, rx_speed);
 #endif
 #endif
 
@@ -123,4 +152,6 @@ void sess_stat::print() {
     sub_io_counts_ = 0;
     sub_rx_ = 0;
     sub_tx_ = 0;
+    max_rtt_ = 0.0;
 }
+

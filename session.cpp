@@ -164,6 +164,7 @@ int session::on_escape_task(const std::basic_string<unsigned char> &data) {
     }
 
     escape_task->head.id = escape_request.head.id;
+    escape_task->head.tx_timestamp = escape_request.head.tx_timestamp;
 	return send_escape_next();
 }
 
@@ -181,6 +182,9 @@ int session::on_escape_task_client(const std::basic_string<unsigned char> &data)
         client_init_finish.sig();
     }
 
+    my_stat.update_rtt(escape_response.head.tx_timestamp.value_);
+
+    escape_task->head.tx_timestamp = nsp::os::clock_monotonic();
 	return send_escape_next();
 }
 

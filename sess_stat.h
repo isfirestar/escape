@@ -9,11 +9,13 @@ class sess_stat {
     std::atomic<uint64_t> io_counts_ {0} ; // 从开始到当前总共发生的IO次数
     std::atomic<uint64_t> total_rx_ {0};     // 从开始到当前总共接收的数据字节数
     std::atomic<uint64_t> total_tx_ {0};     // 从开始到当前总共发送的数据字节数
-    
+
     // 单词查询区间的统计
     std::atomic<uint64_t> sub_io_counts_{0};
     std::atomic<uint64_t> sub_rx_ {0};
     std::atomic<uint64_t> sub_tx_ {0};
+
+    std::atomic<float> max_rtt_ {0.0};
 
 	uint64_t tick = 0; // session 检查时间点
 
@@ -23,6 +25,7 @@ public:
 
 	void increase_tx(uint64_t inc);
 	void increase_rx(uint64_t inc);
+    void update_rtt(uint64_t tx_timestamp);
 	void print();
 };
 

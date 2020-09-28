@@ -7,7 +7,7 @@
 
 struct proto_head : public nsp::proto::proto_interface {
     virtual const int length() const override {
-        return id.length() + type.length() + ver.length() + err.length();
+        return id.length() + type.length() + ver.length() + err.length() + tx_timestamp.length();
     }
 
     virtual unsigned char *serialize(unsigned char *bytes) const override {
@@ -16,6 +16,7 @@ struct proto_head : public nsp::proto::proto_interface {
         pos = type.serialize(pos);
         pos = ver.serialize(pos);
         pos = err.serialize(pos);
+        pos = tx_timestamp.serialize(pos);
         return pos;
     }
 
@@ -25,6 +26,7 @@ struct proto_head : public nsp::proto::proto_interface {
         pos = type.build(pos, cb);
         pos = ver.build(pos, cb);
         pos = err.build(pos, cb);
+        pos = tx_timestamp.build(pos, cb);
         return pos;
     }
 
@@ -32,6 +34,7 @@ struct proto_head : public nsp::proto::proto_interface {
     nsp::proto::proto_crt_t<uint32_t> type;
     nsp::proto::proto_crt_t<uint32_t> ver;
     nsp::proto::proto_crt_t<int> err;
+    nsp::proto::proto_crt_t<uint64_t> tx_timestamp;
 };
 
 #define PKTTYPE_LOGIN           (0x00001001)
