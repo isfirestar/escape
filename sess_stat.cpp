@@ -15,14 +15,10 @@ sess_stat::~sess_stat() {
 
 void sess_stat::increase_tx( uint64_t inc ) {
 	sub_tx_ += inc;
-	total_tx_ += inc;
 }
 
 void sess_stat::increase_rx( uint64_t inc ) {
 	sub_rx_ += inc;
-	total_rx_ += inc;
-
-	// Rx 完成阶段累计IO完成量
 	++io_counts_;
 	++sub_io_counts_;
 }
@@ -54,44 +50,14 @@ void sess_stat::print() {
     tick = current_tick;
 
     uint64_t io_counts = io_counts_;
- //    char total_tx_unit[16], total_rx_unit[16];
 
- //    // session 至今总共的IO个数
- //    uint64_t io_counts = io_counts_;
-
- //    // session 至今总共的Tx数据量
- //    nsp::toolkit::posix_strcpy(total_tx_unit, cchof(total_tx_unit), "MB");
-	// uint64_t total_tx_u = total_tx_;
- //    double total_tx = (double) total_tx_u / 1024 / 1024;
- //    if (total_tx > 1024) {
- //        total_tx /= 1024;
- //        nsp::toolkit::posix_strcpy(total_tx_unit, cchof(total_tx_unit), "GB");
- //        if (total_tx > 1024) {
- //            total_tx /= 1024;
- //            nsp::toolkit::posix_strcpy(total_tx_unit, cchof(total_tx_unit), "TB");
- //        }
- //    }
-
- //    // session 至今总共的Rx数据量
- //    nsp::toolkit::posix_strcpy(total_rx_unit, cchof(total_rx_unit), "MB");
-	// uint64_t total_rx_u = total_rx_;
- //    double total_rx = (double) total_rx_u / 1024 / 1024;
- //    if (total_rx > 1024) {
- //        total_rx /= 1024;
- //        nsp::toolkit::posix_strcpy(total_rx_unit, cchof(total_rx_unit), "GB");
- //        if (total_rx > 1024) {
- //            total_rx /= 1024;
- //            nsp::toolkit::posix_strcpy(total_rx_unit, cchof(total_rx_unit), "TB");
- //        }
- //    }
-
-    // 检查时间区间内的IOPS
+    // accumulate IO count
     uint32_t iops = (uint32_t) sub_io_counts_;
     if (escaped_seconds > 1) {
         iops /= escaped_seconds;
     }
 
-    // 检查时间区间内的Tx速度
+    // calculate Tx speed in delta
     char tx_speed[128];
     uint64_t tx_bps_u =  sub_tx_;
     tx_bps_u *= 8;
@@ -109,7 +75,7 @@ void sess_stat::print() {
         posix__sprintf(tx_speed, cchof(tx_speed), "%.1f Mbps", tx_bps);
     }
 
-    // 检查时间区间内的Rx速度
+    // calculate Rx speed in delta
     char rx_speed[128];
     uint64_t rx_bps_u = sub_rx_;
     rx_bps_u *= 8;
@@ -127,28 +93,10 @@ void sess_stat::print() {
         posix__sprintf(rx_speed, cchof(rx_speed), "%.1f Mbps", rx_bps);
     }
 
-// #if __x86_64__
-//     printf("\t%lu\t\t%.3f(%s)\t%.3f(%s)\t%u\t%s\t%s\n", io_counts, total_tx, total_tx_unit, total_rx, total_rx_unit, iops, tx_speed, rx_speed);
-// #else
-// #if _WIN32
-// 	printf("\t%I64u\t\t%.3f(%s)\t%.3f(%s)\t%u\t%s\t%s\n", io_counts, total_tx, total_tx_unit, total_rx, total_rx_unit,  iops, tx_speed, rx_speed);
-// #else
-//     printf("\t%llu\t\t%.3f(%s)\t%.3f(%s)\t%u\t%s\t%s\n", io_counts, total_tx, total_tx_unit, total_rx, total_rx_unit, iops, tx_speed, rx_speed);
-// #endif
-// #endif
     float rtt = max_rtt_;
-#if __x86_64__
-    printf("\t%lu\t%.3f\t%u\t%s\t%s\n", io_counts, rtt, iops, tx_speed, rx_speed);
-#else
-#if _WIN32
-    printf("\t%I64u\t%.3f\t%u\t%s\t%s\n", io_counts, rtt, iops, tx_speed, rx_speed);
-#else
-    printf("\t%llu\t%.3f\t%u\t%s\t%s\n", io_counts, rtt, iops, tx_speed, rx_speed);
-#endif
-#endif
+    printf("\t" UINT64_STRFMT" \t\t%.3f\t\t%u\t\t%s\t%s\n", io_counts, rtt, iops, tx_speed, rx_speed);
 
-
-    // 完成打印及清空当前数据
+    // clear cumulative data after print
     sub_io_counts_ = 0;
     sub_rx_ = 0;
     sub_tx_ = 0;

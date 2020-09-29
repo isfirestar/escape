@@ -10,13 +10,27 @@ OBJS=$(patsubst %.$(SRC_EXT),%.o,$(SRCS))
 CFLAGS+=-I ../libnsp/ -Wall -std=c++11 -I ../libnsp/icom/
 
 ifeq ($(build),debug)
-	CFLAGS+=-g
+	CFLAGS+=-g3
 else
 	CFLAGS+=-O2
 endif
 
 CC=g++
-LDFLAGS+=-Wl,-rpath=/usr/local/lib64/ /usr/local/lib64/nshost.so -Wl,-rpath=./ -lrt -lpthread -ldl
+LD_DIR=/usr/local/lib64/
+ifeq ($(arch), $(filter $(arch),arm arm32))
+        CC=arm-linux-gnueabihf-g++
+        OBJCOPY=arm-linux-gnueabihf-objcopy
+        CFLAGS+=-mfloat-abi=hard -mfpu=neon
+        LD_DIR=/usr/local/lib/
+endif
+
+ifeq ($(arch), $(filter $(arch),arm64 aarch64))
+        CC=aarch64-linux-gnu-g++
+        OBJCOPY=aarch64-linux-gnu-objcopy
+        LD_DIR=/usr/local/lib/aarch64-linux-gnu/
+endif
+
+LDFLAGS+=-Wl,-rpath=$(LD_DIR) $(LD_DIR)nshost.so -lrt -lpthread -ldl
 
 all:$(TARGET)
 
