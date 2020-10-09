@@ -2,13 +2,12 @@ TARGET=escape
 build=automatic
 arch=x86_64
 
-SRC_EXT=cpp
+SRC_EXT=c
 
 SRCS=$(wildcard *.$(SRC_EXT))
-SRCS+=$(wildcard ../libnsp/*.$(SRC_EXT))
 OBJS=$(patsubst %.$(SRC_EXT),%.o,$(SRCS))
 
-CFLAGS+=-I ../libnsp/ -Wall -std=c++11 -I ../libnsp/icom/
+CFLAGS+=-I ../libnsp/icom/ -Wall -std=c89 -D_GNU_SOURCE
 
 ifeq ($(build),debug)
 	CFLAGS+=-g3
@@ -16,7 +15,6 @@ else
 	CFLAGS+=-O2
 endif
 
-CC=g++
 LD_DIR=/usr/local/lib64/
 ifeq ($(arch), $(filter $(arch),arm arm32))
         CC=arm-linux-gnueabihf-g++
