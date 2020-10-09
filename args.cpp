@@ -1,4 +1,5 @@
 ﻿#include "icom/compiler.h"
+#include "icom/nisdef.h"
 #include <getopt.h>
 
 #include "toolkit.h"
@@ -48,7 +49,8 @@ static const struct option long_options[] = {
     {NULL, 0, NULL, 0}
 };
 
-void display_usage() {
+void display_usage()
+{
     static const char *usage_context =
             "usage escape - nshost escape timing counter\n"
             "SYNOPSIS\n"
@@ -58,9 +60,9 @@ void display_usage() {
             "\t[-C|--client]\tthis session run as a client.this option is default.\n"
             "\t[-H|--host]\ttarget server IPv4 address or domain when @C or local bind adpater when @S, \"0.0.0.0\" by default\n"
             "\t[-P|--port]\ttarget server TCP port when @C or local listen TCP port when @S, 10256 by default\n"
-            "\t[-s|--size]\trequest packet size in bytes when @C or response packet size in bytes when @S 1024 by default\n"
+            "\t[-s|--size]\trequest packet size in bytes when @C or response packet size in bytes when @S 1448 by default\n"
 			"\t\t\twhen using @u or @d, @s means pre-block bytes in file mode\n"
-            "\t[-i|--interval]\tinterval in seconds between two displays.1 sec by default. \n"
+            "\t[-i|--interval]\tinterval in seconds between two statistic point.1 second by default. \n"
             "\t[-u|--upload]\tfile mode of upload from @args on local to server application startup directory. only when @C.\n"
             "\t[-d|--download]\tfile mode of download from @args on server to current directory.only @C.\n"
 			"\t[-n|-w|--winsize|--window-size]\tpacket transfer window size of this connection. 1 by default. only @C and conflict with file mode.\n"
@@ -70,7 +72,8 @@ void display_usage() {
 }
 
 static
-void display_author_information() {
+void display_author_information()
+{
     static const char *author_context =
             "nshost escape 1,1,0,0\n"
             "Copyright (C) 2017 neo.anderson\n"
@@ -81,14 +84,16 @@ void display_author_information() {
     printf("%s", author_context);
 }
 
-int check_args(int argc, char **argv) {
+int check_args(int argc, char **argv)
+{
     int opt_index;
     int opt;
     int retval = 0;
     char shortopts[128];
-    
+    static const int DEFAULT_ESCAPE_SIZE = MAX_TCP_UNIT - 8/*nsp head*/ - 24/*proto_head*/ - 4/*proto_string_t*/;
+
     __startup_parameters.type = SESS_TYPE_CLIENT;
-    __startup_parameters.size_ = 1024;
+    __startup_parameters.size_ = DEFAULT_ESCAPE_SIZE;
     nsp::toolkit::posix_strcpy(__startup_parameters.host, cchof(__startup_parameters.host), "0.0.0.0");
     __startup_parameters.port = 10256;
     __startup_parameters.interval = 1000;
@@ -162,33 +167,40 @@ int check_args(int argc, char **argv) {
     return retval;
 }
 
-int buildep(nsp::tcpip::endpoint &ep){
+int buildep(nsp::tcpip::endpoint &ep)
+{
     return nsp::tcpip::endpoint::build(__startup_parameters.host, __startup_parameters.port, ep);
 }
 
-int gettype(){
+int gettype()
+{
     return __startup_parameters.type;
 }
 
-int getpkgsize(){
+int getpkgsize()
+{
     return __startup_parameters.size_;
 }
 
-int getinterval(){
+int getinterval()
+{
     return __startup_parameters.interval;
 }
 
-extern int getmode() {
+extern int getmode()
+{
     return __startup_parameters.mode;
 }
 
-const char *getfile( int *len ) {
+const char *getfile( int *len )
+{
 	if ( len ) {
 		*len = strlen( __startup_parameters.file );
 	}
 	return &__startup_parameters.file[0];
 }
 
-int getwinsize() {
+int getwinsize()
+{
 	return __startup_parameters.winsize;
 }

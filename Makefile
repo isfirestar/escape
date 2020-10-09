@@ -4,7 +4,8 @@ arch=x86_64
 
 SRC_EXT=cpp
 
-SRCS=$(wildcard *.$(SRC_EXT)) $(wildcard ../libnsp/*.$(SRC_EXT))
+SRCS=$(wildcard *.$(SRC_EXT))
+SRCS+=$(wildcard ../libnsp/*.$(SRC_EXT))
 OBJS=$(patsubst %.$(SRC_EXT),%.o,$(SRCS))
 
 CFLAGS+=-I ../libnsp/ -Wall -std=c++11 -I ../libnsp/icom/

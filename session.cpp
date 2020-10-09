@@ -6,7 +6,8 @@
 #include <stdio.h>
 #include <string>
 
-static const char *getname(const char *path) {
+static const char *getname(const char *path)
+{
     const char *symb = strrchr(path, '/');
     if (!symb) {
         symb = strrchr(path, '\\');
@@ -16,13 +17,18 @@ static const char *getname(const char *path) {
 
 ///////////////////////////////////////////////////// session //////////////////////////////////////////////////////
 
-session::session() : base_session(), client_init_finish(0), client_established_notify_(0) {
+session::session() : base_session(), client_init_finish(0), client_established_notify_(0)
+{
+    ;
 }
 
-session::session(HTCPLINK lnk) : base_session(lnk), client_init_finish(0) {
+session::session(HTCPLINK lnk) : base_session(lnk), client_init_finish(0)
+{
+    ;
 }
 
-session::~session() {
+session::~session()
+{
     if (file_task) {
         delete file_task;
     }
@@ -32,7 +38,8 @@ session::~session() {
 }
 
 // 响应客户端登陆请求
-int session::on_login(const std::basic_string<unsigned char> &data) {
+int session::on_login(const std::basic_string<unsigned char> &data)
+{
     struct proto_login login;
     int cb = data.size();
     if (login.build((const unsigned char *) data.c_str(), cb) < 0) {
@@ -72,7 +79,8 @@ int session::on_login(const std::basic_string<unsigned char> &data) {
     return this->psend(&login_ack);
 }
 
-int session::on_login_client(const std::basic_string<unsigned char> &data) {
+int session::on_login_client(const std::basic_string<unsigned char> &data)
+{
     proto_login_ack login_ack;
     int cb = data.size();
     if (login_ack.build((const unsigned char *) data.c_str(), cb) < 0) {
@@ -151,7 +159,8 @@ int session::on_login_client(const std::basic_string<unsigned char> &data) {
 }
 
 // 服务端处理 escape task
-int session::on_escape_task(const std::basic_string<unsigned char> &data) {
+int session::on_escape_task(const std::basic_string<unsigned char> &data)
+{
     struct proto_escape_task escape_request;
     int cb = data.size();
     if (escape_request.build((const unsigned char *) data.c_str(), cb) < 0) {
@@ -169,7 +178,8 @@ int session::on_escape_task(const std::basic_string<unsigned char> &data) {
 }
 
 // 客户端处理 escape task
-int session::on_escape_task_client(const std::basic_string<unsigned char> &data) {
+int session::on_escape_task_client(const std::basic_string<unsigned char> &data)
+{
     struct proto_escape_task escape_response;
     int cb = data.size();
     if (escape_response.build((const unsigned char *) data.c_str(), cb) < 0) {
@@ -189,7 +199,8 @@ int session::on_escape_task_client(const std::basic_string<unsigned char> &data)
 }
 
 // 服务端处理文件请求
-int session::on_enable_filemode(const std::basic_string<unsigned char> &data) {
+int session::on_enable_filemode(const std::basic_string<unsigned char> &data)
+{
     struct proto_enable_filemode filemode_enable_request;
     int cb = data.size();
     if (filemode_enable_request.build((const unsigned char *) data.c_str(), cb) < 0) {
@@ -231,7 +242,8 @@ int session::on_enable_filemode(const std::basic_string<unsigned char> &data) {
     return -1;
 }
 
-int session::on_enable_filemode_client(const std::basic_string<unsigned char> &data) {
+int session::on_enable_filemode_client(const std::basic_string<unsigned char> &data)
+{
     struct proto_enable_filemode_ack filemode_enable_ack;
     int cb = data.size();
     if (filemode_enable_ack.build((const unsigned char *) data.data(), cb) < 0) {
@@ -296,7 +308,8 @@ int session::on_enable_filemode_client(const std::basic_string<unsigned char> &d
 }
 
 // 服务端处理上传数据
-int session::on_file_block(const std::basic_string<unsigned char> &data) {
+int session::on_file_block(const std::basic_string<unsigned char> &data)
+{
     struct proto_file_block file_block;
     int cb = data.size();
     if (file_block.build((const unsigned char *) data.data(), cb) < 0) {
@@ -326,7 +339,8 @@ int session::on_file_block(const std::basic_string<unsigned char> &data) {
     return 0;
 }
 
-int session::on_file_block_client(const std::basic_string<unsigned char> &data) {
+int session::on_file_block_client(const std::basic_string<unsigned char> &data)
+{
     struct proto_file_block_ack file_block;
     int cb = data.size();
     if (file_block.build((const unsigned char *) data.data(), cb) < 0) {
@@ -345,7 +359,8 @@ int session::on_file_block_client(const std::basic_string<unsigned char> &data) 
     return 0;
 }
 
-void session::on_recvdata(const std::basic_string<unsigned char> &data) {
+void session::on_recvdata(const std::basic_string<unsigned char> &data)
+{
     int retval;
     struct proto_head head;
     int cb = data.size();
@@ -393,14 +408,16 @@ void session::on_recvdata(const std::basic_string<unsigned char> &data) {
 
 extern void end_client();
 
-void session::on_disconnected(const HTCPLINK previous) {
+void session::on_disconnected(const HTCPLINK previous)
+{
     // 客户端链接断开， 直接找主线程， 通知退出
     if (SESS_TYPE_CLIENT == type) {
         end_client();
     }
 }
 
-int session::connect_timeout(uint32_t timeo) {
+int session::connect_timeout(uint32_t timeo)
+{
 	if (0 != client_established_notify_.wait(-1)){
 		this->close();
 		return -1;
@@ -410,17 +427,20 @@ int session::connect_timeout(uint32_t timeo) {
 	return 0;
 }
 
-void session::on_connected() {
+void session::on_connected()
+{
 	// 作为客户端成功连接上服务器
 	client_established_notify_.sig();
 }
 
-void session::print() {
+void session::print()
+{
 	my_stat.print();
 }
 
 // 启动客户端， 初始化客户端的基本配置信息， 并登入服务器
-int session::begin_client() {
+int session::begin_client()
+{
     this->mode = getmode();
     this->type = gettype();
     struct proto_login login_request;
@@ -428,7 +448,8 @@ int session::begin_client() {
     return this->psend(&login_request);
 }
 
-int session::waitfor_init_finish() {
+int session::waitfor_init_finish()
+{
     if (0 != client_init_finish.wait(-1)) {
         return -1;
     }
@@ -437,7 +458,8 @@ int session::waitfor_init_finish() {
 }
 
 // 发送下一片上传数据
-int session::send_upload_next() {
+int session::send_upload_next()
+{
     struct proto_file_block file_block_upload;
     try {
         unsigned char *block = new unsigned char[file_task->get_blocksize()];
@@ -457,7 +479,8 @@ int session::send_upload_next() {
     return psend(&file_block_upload);
 }
 
-int session::send_escape_next(){
+int session::send_escape_next()
+{
     // 加入统计
 	my_stat.increase_tx( escape_task->length() );
     return psend(escape_task);
