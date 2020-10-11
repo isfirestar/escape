@@ -7,7 +7,7 @@ SRC_EXT=c
 SRCS=$(wildcard *.$(SRC_EXT))
 OBJS=$(patsubst %.$(SRC_EXT),%.o,$(SRCS))
 
-CFLAGS+=-I ../libnsp/icom/ -Wall -std=c89 -D_GNU_SOURCE
+CFLAGS+=-I ../libnsp/icom/ -Wall -std=c89 -D_GNU_SOURCE -I ./
 
 ifeq ($(build),debug)
 	CFLAGS+=-g3
