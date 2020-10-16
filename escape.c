@@ -8,7 +8,7 @@ extern int cli_startup();
 
 void STDCALL ecr(const char *host_event, const char *reserved, int rescb)
 {
-    misc_alarm_trace(host_event);
+    log__save("nshost", kLogLevel_Info, kLogTarget_Filesystem, "%s", host_event );
 }
 
 int main(int argc, char **argv)

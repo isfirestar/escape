@@ -1,10 +1,10 @@
-#include "tst.h"
+#include "proto.h"
 
 static const unsigned char NSPDEF_OPCODE[4] = {'N', 's', 'p', 'd'};
 
 int STDCALL tst_parser(void *dat, int cb, int *pkt_cb)
 {
-    head_t *head = (head_t *) dat;
+    struct nsp_head *head = (struct nsp_head *) dat;
 
     if (!head) return -1;
 
@@ -18,7 +18,7 @@ int STDCALL tst_parser(void *dat, int cb, int *pkt_cb)
 
 int STDCALL tst_builder(void *dat, int cb)
 {
-    head_t *head = (head_t *) dat;
+    struct nsp_head *head = (struct nsp_head *) dat;
 
     if (!dat || cb <= 0) {
         return -1;

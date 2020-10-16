@@ -1,7 +1,5 @@
 #include "nis.h"
 #include "args.h"
-#include "tst.h"
-
 #include "proto.h"
 
 #include <unistd.h>
@@ -52,7 +50,7 @@ int srv_startup()
 	nis_cntl(link, NI_SETATTR, attr | LINKATTR_TCP_UPDATE_ACCEPT_CONTEXT);
 	tst.parser_ = &tst_parser;
     tst.builder_ = &tst_builder;
-    tst.cb_ = sizeof(head_t);
+    tst.cb_ = sizeof(struct nsp_head);
     nis_cntl(link, NI_SETTST, &tst);
 
     /* allocate the response packet */

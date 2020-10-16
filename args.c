@@ -9,18 +9,16 @@ static struct {
     struct misc_endpoint endpoint;  /* endpoint specified by startup argument */
     int txn;    /* number of bytes in Tx(request) packet. */
     int rxn;    /* number of bytes in Rx(response) packet */
-    int interval; /* time interval in milliseconds during every two statistic print */
 	int window;		/* window size for every TCP link */
 } __startup_parameters;
 
-enum ope_index {
+enum opt_index_enumerate {
     kOptIndex_GetHelp = 'h',        /* 'h' is the abbreviation of 'help' */
     kOptIndex_GetVersion = 'v',     /* 'v' is the abbreviation of 'version' */
     kOptIndex_Server = 's',         /* 's' is the abbreviation of 'server' */
     kOptIndex_Client = 'c',         /* 'c' is the abbreviation of 'client' */
     kOptIndex_TxSize = 't',         /* 't' is the abbreviation of 'transmit' */
     kOptIndex_RxSize = 'r',         /* 'r' is the abbreviation of 'response' */
-    kOptIndex_Interval = 'i',       /* 'i' is the abbreviation of 'interval' */
 	kOptIndex_WindowSize = 'w',     /* 'w' is the abbreviation of 'window' */
 };
 
@@ -31,7 +29,6 @@ static const struct option long_options[] = {
     {"client", required_argument, NULL, kOptIndex_Client},
     {"transmit", required_argument, NULL, kOptIndex_TxSize},
     {"acknowledge", required_argument, NULL, kOptIndex_RxSize},
-    {"interval", required_argument, NULL, kOptIndex_Interval},
 	{"window", required_argument, NULL, kOptIndex_WindowSize},
     {NULL, 0, NULL, 0}
 };
@@ -54,7 +51,6 @@ static void arg_display_usage()
             "\t[-r|--response]\tusing this option only in server model.\n"
             "\t\t\ttell the escape program how many bytes each response packet acknowledge\n"
             "\t\t\tdefault response size are equivalent to request.\n"
-            "\t[-i|--interval]\tinterval in milliseconds between two statistic point, 1 second by default. \n"
 			"\t[-w|--window]\tpacket transfer window size of this connection.\n"
             ;
 
@@ -79,17 +75,15 @@ int arg_check_input(int argc, char **argv)
     int opt;
     char shortopts[32];
 
-    /*  MAX_TCP_UNIT - nsp-head(8) - packet-id(4) - timestamp(8) */
-    static const int DEFAULT_ESCAPE_SIZE = 1428;
-
     __startup_parameters.type = SESS_TYPE_SERVER;
     misc_build_endpoint("0.0.0.0:10256", &__startup_parameters.endpoint);
-    __startup_parameters.txn = DEFAULT_ESCAPE_SIZE;
+
+    /*  MAX_TCP_UNIT - nsp-head(8) - packet-id(4) - timestamp(8) */
+    __startup_parameters.txn = 1428;
     __startup_parameters.rxn = 0;
-    __startup_parameters.interval = 1000;
 	__startup_parameters.window = 1;
 
-    posix__strcpy(shortopts, cchof(shortopts), "hvs,c:t:r:i:w:");
+    posix__strcpy(shortopts, cchof(shortopts), "hvs::c:t:r:w:");
     opt = getopt_long(argc, argv, shortopts, long_options, &opt_index);
     while (opt != -1) {
         switch (opt) {
@@ -115,10 +109,6 @@ int arg_check_input(int argc, char **argv)
             case kOptIndex_RxSize:
                 assert(optarg);
                 __startup_parameters.rxn = atoi(optarg);
-                break;
-            case kOptIndex_Interval:
-                assert(optarg);
-                __startup_parameters.interval = strtoul(optarg, NULL, 10) * 1000;
                 break;
 			case kOptIndex_WindowSize:
                 assert(optarg);
@@ -146,7 +136,7 @@ int arg_gettype()
 }
 
 
-void arg_duplicate_client_argument(struct misc_endpoint *server, int *txn, int *interval, int *window)
+void arg_duplicate_client_argument(struct misc_endpoint *server, int *txn, int *window)
 {
     if (server) {
         misc_duplicate_endpoint(server, &__startup_parameters.endpoint);
@@ -154,10 +144,6 @@ void arg_duplicate_client_argument(struct misc_endpoint *server, int *txn, int *
 
     if (txn) {
         *txn = __startup_parameters.txn;
-    }
-
-    if (interval) {
-        *interval = __startup_parameters.interval;
     }
 
     if (window) {

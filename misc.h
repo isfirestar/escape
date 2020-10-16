@@ -9,7 +9,7 @@
 #define LOGGER_TARGET (kLogTarget_Filesystem | kLogTarget_Stdout)
 #define misc_alarm_error(...)   log__save(LOGGER_MODULE, kLogLevel_Error, LOGGER_TARGET, __VA_ARGS__)
 #define misc_alarm_info(...)    log__save(LOGGER_MODULE, kLogLevel_Info, LOGGER_TARGET, __VA_ARGS__)
-#define misc_alarm_warning(...) log__save(LOGGER_MODULE, kLogLevel_Warning, ;OGGER_TARGET, __VA_ARGS__)
+#define misc_alarm_warning(...) log__save(LOGGER_MODULE, kLogLevel_Warning, LOGGER_TARGET, __VA_ARGS__)
 #define misc_alarm_trace(...)   log__save(LOGGER_MODULE, kLogLevel_Info, kLogTarget_Filesystem, __VA_ARGS__ )
 
 struct misc_endpoint
