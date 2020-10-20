@@ -83,7 +83,7 @@ int arg_check_input(int argc, char **argv)
     __startup_parameters.rxn = 0;
 	__startup_parameters.window = 1;
 
-    posix__strcpy(shortopts, cchof(shortopts), "hvs::c:t:r:w:");
+    portable__strcpy(shortopts, cchof(shortopts), "hvs::c:t:r:w:");
     opt = getopt_long(argc, argv, shortopts, long_options, &opt_index);
     while (opt != -1) {
         switch (opt) {

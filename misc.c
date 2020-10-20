@@ -26,7 +26,7 @@ int misc_build_endpoint(const char *str, struct misc_endpoint *endpoint)
     memset(host, 0, sizeof(host));
     memset(segp, 0, sizeof(segp));
 
-    dup = posix__strdup(str);
+    dup = portable__strdup(str);
     cursor = dup;
     while (*cursor) {
         if (':' == *cursor) {
@@ -150,6 +150,6 @@ struct misc_endpoint * misc_duplicate_endpoint(struct misc_endpoint *duplicate, 
     assert(source && duplicate);
     duplicate->inet = source->inet;
     duplicate->port = source->port;
-    posix__strcpy(duplicate->host, sizeof(duplicate->host), source->host);
+    portable__strcpy(duplicate->host, sizeof(duplicate->host), source->host);
     return duplicate;
 }

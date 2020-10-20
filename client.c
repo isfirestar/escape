@@ -37,7 +37,7 @@ static struct sender_context __sender_context = { .wait = NULL, .refs = 0, .link
 
 #define _USE_SENDER_THREAD (0)
 
-static void srv_receive_data(HTCPLINK link, const unsigned char *data, int len)
+static void cli_receive_data(HTCPLINK link, const unsigned char *data, int len)
 {
 	int64_t timestamp;
 	int64_t rtt, rtt_max;
@@ -61,7 +61,12 @@ static void srv_receive_data(HTCPLINK link, const unsigned char *data, int len)
 #else
 	((struct escape_head *)__sender_context.tx_buffer)->seq = ((const struct escape_head *)data)->seq + 1;
     ((struct escape_head *)__sender_context.tx_buffer)->tx_timestamp = posix__clock_monotonic();
-	tcp_write(link, __sender_context.tx_buffer, __sender_context.tx_size, NULL);
+
+	if ( tcp_write(link, __sender_context.tx_buffer, __sender_context.tx_size, NULL) < 0 ) {
+		misc_alarm_error("[cli_receive_data] fails on tcp_write." );
+		posix__release_waitable_handle(__statistic.wait);
+		return;
+	}
 
 	__atomic_add_fetch(&__statistic.total.tx, __sender_context.tx_size + sizeof(struct nsp_head), __ATOMIC_SEQ_CST);
 	__atomic_add_fetch(&__statistic.range.tx, __sender_context.tx_size + sizeof(struct nsp_head), __ATOMIC_SEQ_CST);
@@ -73,12 +78,13 @@ static void STDCALL cli_callback(const struct nis_event *event, const void *data
 	tcp_data_t *tcpdata = (tcp_data_t *)data;
 
 	if (event->Event == EVT_CLOSED) {
+		misc_alarm_error("[cli_callback] link closed." );
 		posix__release_waitable_handle(__statistic.wait);		/* notify main thread exit */
 		return;
 	}
 
 	if (EVT_RECEIVEDATA == event->Event) {
-		srv_receive_data(event->Ln.Tcp.Link, tcpdata->e.Packet.Data, tcpdata->e.Packet.Size);
+		cli_receive_data(event->Ln.Tcp.Link, tcpdata->e.Packet.Data, tcpdata->e.Packet.Size);
 		return;
 	}
 }
@@ -153,7 +159,7 @@ int cli_startup()
 		window = 1;
 	}
 
-	link = tcp_create(&cli_callback, "172.24.55.145", 0);
+	link = tcp_create(&cli_callback, NULL, 0);
 	if (link < 0) {
 		misc_alarm_error("fails create TCP link as a client" );
 		return -1;
@@ -216,6 +222,7 @@ int cli_startup()
     	printf(INT64_STRFMT"\t"INT64_STRFMT"\t%s\t%s\t%.2f ms\n", total_io_n, range.io, tx_holder, rx_holder, (double)rtt / 10000);
 
     	/* no any data transmit during 3 seconds, the link is going to initiative destroy cause by timeout */
+#if 0
     	if (0 == range.rx && 0 == range.tx) {
     		if (timeouts++ >= 3) {
     			break;
@@ -223,9 +230,18 @@ int cli_startup()
     	} else {
     		timeouts = 0;
     	}
+#endif
+
+    	if ( 0 == range.io && 0 == range.rx && 0 == range.tx ) {
+	    	if (tcp_write(link, __sender_context.tx_buffer, __sender_context.tx_size, NULL) <= 0) {
+	    		misc_alarm_error("[client cycle] fails on tcp_write." );
+	    		break;
+	    	}
+    	}
+
     }
 
-    udp_destroy(link);
+    tcp_destroy(link);
     free(__sender_context.tx_buffer);
     return 0;
 }
